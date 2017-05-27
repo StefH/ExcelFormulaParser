@@ -5,7 +5,7 @@
         Noop,
         Operand,
         Function,
-        SubExpression,
+        Subexpression,
         Argument,
         OperatorPrefix,
         OperatorInfix,

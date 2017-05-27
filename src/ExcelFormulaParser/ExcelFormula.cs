@@ -384,7 +384,7 @@ namespace ExcelFormulaParser
                     }
                     else
                     {
-                        stack.Push(tokens1.Add(new ExcelFormulaToken("", ExcelFormulaTokenType.SubExpression, ExcelFormulaTokenSubtype.Start)));
+                        stack.Push(tokens1.Add(new ExcelFormulaToken("", ExcelFormulaTokenType.Subexpression, ExcelFormulaTokenSubtype.Start)));
                     }
                     index++;
                     continue;
@@ -467,7 +467,7 @@ namespace ExcelFormulaParser
                 if (!(
                         previous.Type == ExcelFormulaTokenType.Function &&
                         previous.Subtype == ExcelFormulaTokenSubtype.Stop ||
-                        previous.Type == ExcelFormulaTokenType.SubExpression &&
+                        previous.Type == ExcelFormulaTokenType.Subexpression &&
                         previous.Subtype == ExcelFormulaTokenSubtype.Stop ||
                         previous.Type == ExcelFormulaTokenType.Operand
                     ))
@@ -484,7 +484,7 @@ namespace ExcelFormulaParser
 
                 if (!(
                         next.Type == ExcelFormulaTokenType.Function && next.Subtype == ExcelFormulaTokenSubtype.Start ||
-                        next.Type == ExcelFormulaTokenType.SubExpression &&
+                        next.Type == ExcelFormulaTokenType.Subexpression &&
                         next.Subtype == ExcelFormulaTokenSubtype.Start ||
                         next.Type == ExcelFormulaTokenType.Operand
                     )
@@ -520,7 +520,7 @@ namespace ExcelFormulaParser
                     else if (
                         previous.Type == ExcelFormulaTokenType.Function &&
                         previous.Subtype == ExcelFormulaTokenSubtype.Stop ||
-                        previous.Type == ExcelFormulaTokenType.SubExpression &&
+                        previous.Type == ExcelFormulaTokenType.Subexpression &&
                         previous.Subtype == ExcelFormulaTokenSubtype.Stop ||
                         previous.Type == ExcelFormulaTokenType.OperatorPostfix ||
                         previous.Type == ExcelFormulaTokenType.Operand
@@ -547,7 +547,7 @@ namespace ExcelFormulaParser
                     if (
                         previous.Type == ExcelFormulaTokenType.Function &&
                         previous.Subtype == ExcelFormulaTokenSubtype.Stop ||
-                        previous.Type == ExcelFormulaTokenType.SubExpression &&
+                        previous.Type == ExcelFormulaTokenType.Subexpression &&
                         previous.Subtype == ExcelFormulaTokenSubtype.Stop ||
                         previous.Type == ExcelFormulaTokenType.OperatorPostfix ||
                         previous.Type == ExcelFormulaTokenType.Operand
