@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net20;netstandard1.1</TargetFrameworks>
+    <Authors>E. W. Bachtal;Stef Heyenrath</Authors>
+    <Copyright>E. W. Bachtal</Copyright>
+    <ApplicationIcon>../../Images/Excel.ico</ApplicationIcon>
+    <Company>ewbi.com</Company>
+    <Description>A library to parse Excel formulas</Description>
+    <RepositoryUrl>https://github.com/StefH/ExcelFormulaParser</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>excel;formula.parser</PackageTags>
+    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/StefH/ExcelFormulaParser</PackageProjectUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/LICENSE</PackageLicenseUrl>
+    <PackageIconUrl>https://github.com/StefH/ExcelFormulaParser/Images/Excel.ico</PackageIconUrl>
+  </PropertyGroup>
+
+</Project>
