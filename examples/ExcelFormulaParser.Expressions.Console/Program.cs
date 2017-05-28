@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace ExcelFormulaParser.Expressions.Console
 {
@@ -7,30 +6,17 @@ namespace ExcelFormulaParser.Expressions.Console
     {
         static void Main(string[] args)
         {
-            var excelFormula = new ExcelFormula("=1+2");
+            // haakjes, machtsverheffen, vermenigvuldigen, delen, worteltrekken, optellen, aftrekken
+            var excelFormula = new ExcelFormula("=-(1+2) * 4 / 2.7");
+            var parser = new ExcelFormulaExpressionParser(excelFormula);
 
-            Expression main = null;
+            Expression x = parser.Parse();
 
-            Stack<Expression> stack = new Stack<Expression>();
-            foreach (ExcelFormulaToken token in excelFormula)
-            {
-                stack.Push(HandleType(token));
-            }
+            LambdaExpression le = Expression.Lambda(x);
 
-            int end = 0;
-        }
+            var result = le.Compile().DynamicInvoke();
 
-        private static Expression HandleType(ExcelFormulaToken token)
-        {
-            if (token.Type == ExcelFormulaTokenType.Operand)
-            {
-                if (token.Subtype == ExcelFormulaTokenSubtype.Number)
-                {
-                    return Expression.Constant(double.Parse(token.Value));
-                }
-            }
-
-            return null;
+            System.Console.WriteLine($"result = `{result}`");
         }
     }
 }
