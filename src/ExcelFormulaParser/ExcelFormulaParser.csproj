@@ -13,7 +13,7 @@
     <PackageReleaseNotes>Initial version</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/StefH/ExcelFormulaParser</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/LICENSE</PackageLicenseUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/Images/Excel_64x64.ico</PackageIconUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/Images/Excel_64x64.png</PackageIconUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <DebugType>full</DebugType>
   </PropertyGroup>
