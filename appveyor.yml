@@ -25,10 +25,10 @@ before_build:
 
 build_script:
 # build ExcelFormulaParser
-- dotnet build .\src\ExcelFormulaParser\ExcelFormulaParser.csproj -c %CONFIGURATION%
+- dotnet build .\src\ExcelFormulaParser\ExcelFormulaParser.csproj -c %CONFIGURATION% --framework net452
 
 # build ExcelFormulaParserSample
-- cmd: msbuild .\examples\ExcelFormulaParserSample\ExcelFormulaParserSample.csproj /p:Configuration=%CONFIGURATION%
+# - cmd: msbuild .\examples\ExcelFormulaParserSample\ExcelFormulaParserSample.csproj /p:Configuration=%CONFIGURATION%
 
 # restore and build ExcelFormulaParser.Tests
 - dotnet restore .\tests\ExcelFormulaParser.Tests\ExcelFormulaParser.Tests.csproj
