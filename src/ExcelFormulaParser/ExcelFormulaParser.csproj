@@ -9,7 +9,7 @@
     <Description>A library to parse Excel formulas</Description>
     <RepositoryUrl>https://github.com/StefH/ExcelFormulaParser</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>excel;formula.parser</PackageTags>
+    <PackageTags>excel;formula;parser</PackageTags>
     <PackageReleaseNotes>Initial version</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/StefH/ExcelFormulaParser</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/LICENSE</PackageLicenseUrl>
