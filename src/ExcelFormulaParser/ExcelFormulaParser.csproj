@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net20;netstandard1.1</TargetFrameworks>
+    <TargetFrameworks>net20;netstandard1.0</TargetFrameworks>
     <Authors>E. W. Bachtal;Stef Heyenrath</Authors>
     <Copyright>E. W. Bachtal</Copyright>
     <ApplicationIcon>../../Images/Excel.ico</ApplicationIcon>
@@ -13,7 +13,9 @@
     <PackageReleaseNotes>Initial version</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/StefH/ExcelFormulaParser</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/LICENSE</PackageLicenseUrl>
-    <PackageIconUrl>https://github.com/StefH/ExcelFormulaParser/Images/Excel.ico</PackageIconUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/Images/Excel_64x64.ico</PackageIconUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <DebugType>full</DebugType>
   </PropertyGroup>
 
 </Project>
