@@ -25,7 +25,7 @@ namespace ExcelFormulaParser.Tests
         }
 
         [Fact]
-        public void ExcelFormula_ParseAddNumbers()
+        public void ExcelFormula_ParseAddIntegerNumbers()
         {
             // Assign
             const string formula = "=1+2";
@@ -46,6 +46,21 @@ namespace ExcelFormulaParser.Tests
             Check.That(ef[2].Value).Equals("2");
             Check.That(ef[2].Type).Equals(ExcelFormulaTokenType.Operand);
             Check.That(ef[2].Subtype).Equals(ExcelFormulaTokenSubtype.Number);
+        }
+
+        [Fact]
+        public void ExcelFormula_ParseDoubleNumbers()
+        {
+            // Assign
+            const string formula = "=1.1+2.2";
+
+            // Act
+            ef = new ExcelFormula(formula);
+
+            // Assert
+            Check.That(ef.Count).Equals(3);
+            Check.That(ef[0].Value).Equals("1.1");
+            Check.That(ef[2].Value).Equals("2.2");
         }
     }
 }

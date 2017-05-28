@@ -586,7 +586,7 @@ namespace ExcelFormulaParser
                 if (token.Type == ExcelFormulaTokenType.Operand && token.Subtype == ExcelFormulaTokenSubtype.Nothing)
                 {
                     double d;
-                    bool isNumber = double.TryParse(token.Value, NumberStyles.Any, CultureInfo.CurrentCulture, out d);
+                    bool isNumber = double.TryParse(token.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out d);
                     if (!isNumber)
                     {
                         if (token.Value == "TRUE" || token.Value == "FALSE")

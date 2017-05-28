@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{08EB3110
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelFormulaParser.Tests", "tests\ExcelFormulaParser.Tests\ExcelFormulaParser.Tests.csproj", "{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelFormulaParser.Expressions.Console", "examples\ExcelFormulaParser.Expressions.Console\ExcelFormulaParser.Expressions.Console.csproj", "{4B2CC684-5281-43E2-A29C-04252381531B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -47,5 +53,6 @@ Global
 		{53490EAA-4A87-43E6-9A3F-A6E8891CE152} = {BCA71646-7799-4A23-9279-18C87E785645}
 		{D05ECA40-6315-4339-BC32-8E922981218D} = {26813EB3-A699-43E2-BA62-602FC8F0E9B2}
 		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA} = {08EB3110-9DD0-42AF-87FC-6AB911DBC9F4}
+		{4B2CC684-5281-43E2-A29C-04252381531B} = {26813EB3-A699-43E2-BA62-602FC8F0E9B2}
 	EndGlobalSection
 EndGlobal

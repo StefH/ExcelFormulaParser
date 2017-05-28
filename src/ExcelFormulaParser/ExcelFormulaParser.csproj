@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net20;net452;netstandard1.0</TargetFrameworks>
+    <VersionPrefix>1.0.1.0</VersionPrefix>
     <Authors>E. W. Bachtal;Stef Heyenrath</Authors>
     <Copyright>E. W. Bachtal</Copyright>
     <ApplicationIcon>../../Images/Excel.ico</ApplicationIcon>
@@ -10,7 +11,7 @@
     <RepositoryUrl>https://github.com/StefH/ExcelFormulaParser</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>excel;formula;parser</PackageTags>
-    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix for parsing double numbers.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/StefH/ExcelFormulaParser</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/LICENSE</PackageLicenseUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/Images/Excel_64x64.png</PackageIconUrl>
