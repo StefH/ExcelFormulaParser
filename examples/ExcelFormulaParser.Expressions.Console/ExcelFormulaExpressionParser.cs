@@ -19,6 +19,8 @@ namespace ExcelFormulaParser.Expressions.Console
 
         public Expression Parse()
         {
+            _index = 0;
+
             return ParseAdditive();
         }
 
@@ -126,19 +128,64 @@ namespace ExcelFormulaParser.Expressions.Console
             {
                 if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Start)
                 {
-                    var list = new List<ExcelFormulaToken>();
+                    var tokens = new List<ExcelFormulaToken>();
 
                     Next();
                     while (CurrentToken.Subtype != ExcelFormulaTokenSubtype.Stop)
                     {
-                        list.Add(CurrentToken);
+                        tokens.Add(CurrentToken);
                         Next();
                     }
 
                     Next();
 
-                    var subexpressionParser = new ExcelFormulaExpressionParser(list);
+                    var subexpressionParser = new ExcelFormulaExpressionParser(tokens);
                     return subexpressionParser.Parse();
+                }
+            }
+
+            if (CurrentToken.Type == ExcelFormulaTokenType.Function)
+            {
+                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Start)
+                {
+                    string functionName = CurrentToken.Value;
+
+                    var arguments = new List<Expression>();
+                    var tokens = new List<ExcelFormulaToken>();
+                    var argumentParser = new ExcelFormulaExpressionParser(tokens);
+
+                    Next();
+                    while (CurrentToken.Subtype != ExcelFormulaTokenSubtype.Stop)
+                    {
+                        if (CurrentToken.Type == ExcelFormulaTokenType.Argument)
+                        {
+                            arguments.Add(argumentParser.Parse());
+
+                            tokens.Clear();
+                        }
+                        else
+                        {
+                            tokens.Add(CurrentToken);
+                        }
+
+                        Next();
+                    }
+
+                    arguments.Add(argumentParser.Parse());
+
+                    Next();
+
+                    switch (functionName)
+                    {
+                        case "POWER":
+                            return Expression.Power(arguments[0], arguments[1]);
+
+                        case "ROUND":
+                            return MathExpression.Round(arguments[0], arguments[1]);
+
+                        case "SIN":
+                            return MathExpression.Sin(arguments[0]);
+                    }
                 }
             }
 
