@@ -6,6 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Book.xlsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Book.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus.Core" Version="1.4.0" />
     <PackageReference Include="Linq.Expression.Optimizer" Version="1.0.8" />
   </ItemGroup>
 
