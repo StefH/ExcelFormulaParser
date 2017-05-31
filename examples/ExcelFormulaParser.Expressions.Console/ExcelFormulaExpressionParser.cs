@@ -122,6 +122,11 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     return Expression.Constant(op.Value);
                 }
+
+                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Range)
+                {
+                    
+                }
             }
 
             if (CurrentToken.Type == ExcelFormulaTokenType.Subexpression)
