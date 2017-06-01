@@ -8,6 +8,8 @@
 
         public object Value { get; set; }
 
+        public ExcelFormula ValueFormula { get; set; }
+
         public string Formula { get; set; }
 
         public ExcelFormula ExcelFormula { get; set; }

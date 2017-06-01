@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using OfficeOpenXml;
+using OfficeOpenXml.FormulaParsing.Utilities;
 
 namespace ExcelFormulaParser.Expressions.Console
 {
@@ -12,19 +13,44 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             ExcelTest();
             CalcTest1();
-            CalcTest2();
         }
 
         private static void ExcelTest()
         {
-            FileInfo f = new FileInfo("Book.xlsx");
-            using (var package = new ExcelPackage(f))
+            using (var package = new ExcelPackage(new FileInfo("Book.xlsx")))
             {
+                package.Workbook.Worksheets.First().Cells["B1"].Value = 77;
+
                 var row = new XRow();
+                row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["A1"]));
                 row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["B1"]));
                 row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["B2"]));
                 row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["B3"]));
-                row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["B4"]));
+
+                var cell4 = ToXCell(package.Workbook.Worksheets.First().Cells["B4"]);
+                row.Cells.Add(cell4);
+
+                row.Cells.Add(ToXCell(package.Workbook.Worksheets[2].Cells["A1"]));
+
+                Func<string, XCell> find = address =>
+                {
+                    return row.Cells.FirstOrDefault(c => address.Contains('!') ? c.FullAddress == address : c.Address == address);
+                };
+
+                var parser = new ExcelFormulaExpressionParser(cell4.ExcelFormula, find);
+
+                Expression x = parser.Parse();
+                System.Console.WriteLine($"Expression = `{x}`");
+
+                var o = x.Optimize();
+
+                System.Console.WriteLine($"Expression = `{o}`");
+
+                LambdaExpression le = Expression.Lambda(o);
+
+                var result = le.Compile().DynamicInvoke();
+
+                System.Console.WriteLine($"result = `{result}`");
 
                 int u = 0;
             }
@@ -35,8 +61,22 @@ namespace ExcelFormulaParser.Expressions.Console
             var c = new XCell
             {
                 Address = r.Address,
-                Value = r.Value
+                FullAddress = $"{r.Worksheet.Name}!{r.Address}"
             };
+
+            if (r.Value != null)
+            {
+                c.Value = r.Value;
+
+                if (r.Value.IsNumeric())
+                {
+                    c.ValueFormula = new ExcelFormula("=" + r.Value);
+                }
+                else
+                {
+                    c.ValueFormula = new ExcelFormula(string.Format("=\"{0}\"", r.Text));
+                }
+            }
 
             if (!string.IsNullOrEmpty(r.Formula))
             {
@@ -50,26 +90,7 @@ namespace ExcelFormulaParser.Expressions.Console
         private static void CalcTest1()
         {
             // haakjes, machtsverheffen, vermenigvuldigen, delen, worteltrekken, optellen, aftrekken
-            var excelFormula = new ExcelFormula("=-(1+2) * ROUND(4 / 2.7, 2) + POWER(1+1,4) + 500 + SIN(3.1415926)");
-            var parser = new ExcelFormulaExpressionParser(excelFormula);
-
-            Expression x = parser.Parse();
-            System.Console.WriteLine($"Expression = `{x}`");
-
-            var o = x.Optimize();
-
-            System.Console.WriteLine($"Expression = `{o}`");
-
-            LambdaExpression le = Expression.Lambda(o);
-
-            var result = le.Compile().DynamicInvoke();
-
-            System.Console.WriteLine($"result = `{result}`");
-        }
-
-        private static void CalcTest2()
-        {
-            var excelFormula = new ExcelFormula("=Sheet1!B1 * Sheet1!B2");
+            var excelFormula = new ExcelFormula("=-(1+2) * ROUND(4 / 2.7, 2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926 / 2) + ABS(-1)");
             var parser = new ExcelFormulaExpressionParser(excelFormula);
 
             Expression x = parser.Parse();

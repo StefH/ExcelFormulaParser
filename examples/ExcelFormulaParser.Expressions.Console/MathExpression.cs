@@ -6,18 +6,24 @@ namespace ExcelFormulaParser.Expressions.Console
 {
     public static class MathExpression
     {
+        public static Expression Abs(Expression value)
+        {
+            return Expression.Call(null, FindMethod("Abs", new[] { typeof(double) }), value);
+        }
+
+        public static Expression Cos(Expression value)
+        {
+            return Expression.Call(null, FindMethod("Cos", new[] { typeof(double) }), value);
+        }
+
         public static Expression Round(Expression number, Expression digits)
         {
-            var func = new Func<Expression, Expression, Expression>((n, d) => Expression.Call(null, FindMethod("Round", new[] { typeof(double), typeof(int) }), n, d));
-
-            return func.Invoke(number, Expression.Convert(digits, typeof(int)));
+            return Expression.Call(null, FindMethod("Round", new[] { typeof(double), typeof(int) }), number, Expression.Convert(digits, typeof(int)));
         }
 
         public static Expression Sin(Expression value)
         {
-            var func = new Func<Expression, Expression>(v => Expression.Call(null, FindMethod("Sin", new[] { typeof(double) }), v));
-
-            return func.Invoke(value);
+            return Expression.Call(null, FindMethod("Sin", new[] { typeof(double) }), value);
         }
 
         private static MethodInfo FindMethod(string name, Type[] types)

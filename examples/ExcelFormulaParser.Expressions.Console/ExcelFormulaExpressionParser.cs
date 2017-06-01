@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Expressions;
 
@@ -11,10 +12,12 @@ namespace ExcelFormulaParser.Expressions.Console
         private ExcelFormulaToken CurrentToken => _list[_index];
 
         private readonly IList<ExcelFormulaToken> _list;
+        private readonly Func<string, XCell> _findCell;
 
-        public ExcelFormulaExpressionParser(IList<ExcelFormulaToken> list)
+        public ExcelFormulaExpressionParser(IList<ExcelFormulaToken> list, Func<string, XCell> findCell = null)
         {
             _list = list;
+            _findCell = findCell;
         }
 
         public Expression Parse()
@@ -125,7 +128,32 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Range)
                 {
-                    
+                    var op = CurrentToken;
+                    Next();
+
+                    if (_findCell != null)
+                    {
+                        var cell = _findCell(op.Value); // B1 or 'Sheet1'!B1
+
+                        ExcelFormula formula;
+                        if (cell.ExcelFormula != null)
+                        {
+                            formula = cell.ExcelFormula;
+                        }
+                        else if (cell.ValueFormula != null)
+                        {
+                            formula = cell.ValueFormula;
+                        }
+                        else
+                        {
+                            formula = new ExcelFormula("=");
+                        }
+
+                        var cellExpressionParser = new ExcelFormulaExpressionParser(formula, _findCell);
+                        return cellExpressionParser.Parse();
+                    }
+
+                    throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'findCell' function is provided.");
                 }
             }
 
@@ -144,7 +172,7 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     Next();
 
-                    var subexpressionParser = new ExcelFormulaExpressionParser(tokens);
+                    var subexpressionParser = new ExcelFormulaExpressionParser(tokens, _findCell);
                     return subexpressionParser.Parse();
                 }
             }
@@ -157,7 +185,7 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     var arguments = new List<Expression>();
                     var tokens = new List<ExcelFormulaToken>();
-                    var argumentParser = new ExcelFormulaExpressionParser(tokens);
+                    var argumentParser = new ExcelFormulaExpressionParser(tokens, _findCell);
 
                     Next();
                     while (CurrentToken.Subtype != ExcelFormulaTokenSubtype.Stop)
@@ -182,6 +210,12 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     switch (functionName)
                     {
+                        case "ABS":
+                            return MathExpression.Abs(arguments[0]);
+
+                        case "COS":
+                            return MathExpression.Cos(arguments[0]);
+
                         case "POWER":
                             return Expression.Power(arguments[0], arguments[1]);
 
@@ -190,6 +224,9 @@ namespace ExcelFormulaParser.Expressions.Console
 
                         case "SIN":
                             return MathExpression.Sin(arguments[0]);
+
+                        default:
+                            throw new NotImplementedException(functionName);
                     }
                 }
             }
