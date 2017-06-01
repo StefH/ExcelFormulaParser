@@ -2,7 +2,7 @@
 
 namespace ExcelFormulaParser.Expressions.Console
 {
-    class XRow
+    public class XRow
     {
         public IList<XCell> Cells { get; set; }
 

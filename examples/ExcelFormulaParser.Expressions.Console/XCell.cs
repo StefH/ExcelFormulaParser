@@ -1,6 +1,6 @@
 ﻿namespace ExcelFormulaParser.Expressions.Console
 {
-    class XCell
+    public class XCell
     {
         public string Address { get; set; }
 

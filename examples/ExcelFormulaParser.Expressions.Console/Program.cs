@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -19,25 +20,40 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             using (var package = new ExcelPackage(new FileInfo("Book.xlsx")))
             {
-                package.Workbook.Worksheets.First().Cells["B1"].Value = 77;
+                package.Workbook.Worksheets[1].Cells["B1"].Value = 77;
 
-                var row = new XRow();
-                row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["A1"]));
-                row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["B1"]));
-                row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["B2"]));
-                row.Cells.Add(ToXCell(package.Workbook.Worksheets.First().Cells["B3"]));
+                var sheets = new List<XSheet>();
+                foreach (var worksheet in package.Workbook.Worksheets)
+                {
+                    var sheet = new XSheet();
 
-                var cell4 = ToXCell(package.Workbook.Worksheets.First().Cells["B4"]);
-                row.Cells.Add(cell4);
+                    // Obtain the worksheet size 
+                    ExcelCellAddress startCell = worksheet.Dimension.Start;
+                    ExcelCellAddress endCell = worksheet.Dimension.End;
 
-                row.Cells.Add(ToXCell(package.Workbook.Worksheets[2].Cells["A1"]));
+                    for (int r = startCell.Row; r <= endCell.Row; r++)
+                    {
+                        var xrow = new XRow();
+                        for (int c = startCell.Column; c <= endCell.Column; c++)
+                        {
+                            xrow.Cells.Add(ToXCell(worksheet.Cells[r, c]));
+                        }
+
+                        sheet.Rows.Add(xrow);
+                    }
+
+                    sheets.Add(sheet);
+                }
+
+                var calcCell = sheets[0].Rows[3].Cells[1];
 
                 Func<string, XCell> find = address =>
                 {
-                    return row.Cells.FirstOrDefault(c => address.Contains('!') ? c.FullAddress == address : c.Address == address);
+                    var rows = sheets.SelectMany(s => s.Rows);
+                    return rows.SelectMany(r => r.Cells).FirstOrDefault(c => address.Contains('!') ? c.FullAddress == address : c.Address == address);
                 };
 
-                var parser = new ExcelFormulaExpressionParser(cell4.ExcelFormula, find);
+                var parser = new ExcelFormulaExpressionParser(calcCell.ExcelFormula, find);
 
                 Expression x = parser.Parse();
                 System.Console.WriteLine($"Expression = `{x}`");
