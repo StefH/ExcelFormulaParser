@@ -21,18 +21,24 @@ environment:
 before_build:
 # restore src and examples
 - dotnet restore .\src\ExcelFormulaParser\ExcelFormulaParser.csproj
+- dotnet restore .\src\ExcelFormulaExpressionParser\ExcelFormulaExpressionParser.csproj
 - nuget  restore .\examples\ExcelFormulaParserSample\ExcelFormulaParserSample.csproj -PackagesDirectory packages
 
 build_script:
 # build ExcelFormulaParser
 - dotnet build .\src\ExcelFormulaParser\ExcelFormulaParser.csproj -c %CONFIGURATION% --framework net452
 
+# build ExcelFormulaExpressionParser
+- dotnet build .\src\ExcelFormulaExpressionParser\ExcelFormulaExpressionParser.csproj -c %CONFIGURATION% --framework net452
+
 # build ExcelFormulaParserSample
 # - cmd: msbuild .\examples\ExcelFormulaParserSample\ExcelFormulaParserSample.csproj /p:Configuration=%CONFIGURATION%
 
-# restore and build ExcelFormulaParser.Tests
+# restore and build Tests
 - dotnet restore .\tests\ExcelFormulaParser.Tests\ExcelFormulaParser.Tests.csproj
 - dotnet build .\tests\ExcelFormulaParser.Tests\ExcelFormulaParser.Tests.csproj -c %CONFIGURATION%
+- dotnet restore .\tests\ExcelFormulaExpressionParser.Tests\ExcelFormulaExpressionParser.Tests.csproj
+- dotnet build .\tests\ExcelFormulaExpressionParser.Tests\ExcelFormulaExpressionParser.Tests.csproj -c %CONFIGURATION%
 
 test_script:
   - nuget.exe install OpenCover -ExcludeVersion
