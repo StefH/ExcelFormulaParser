@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaParser;
 using JetBrains.Annotations;
@@ -17,19 +18,19 @@ namespace ExcelFormulaExpressionParser
 
         private readonly IList<ExcelFormulaToken> _list;
         private readonly ExcelFormulaContext _context;
-        private readonly Func<string, string, XCell> _findCell;
+        private readonly Func<string, string, XCell[]> _findCells;
 
         /// <summary>
         /// ExpressionParser
         /// </summary>
         /// <param name="list">The ExcelFormula or a list from ExcelFormulaToken.</param>
         /// <param name="context">The ExcelFormulaContext.</param>
-        /// <param name="findCell">Function to find a cell by sheetname and address. (optional if no real Excel Workbook is parsed)</param>
-        public ExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] Func<string, string, XCell> findCell = null)
+        /// <param name="findCells">Function to find cells by sheetname and address. (optional if no real Excel Workbook is parsed)</param>
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] Func<string, string, XCell[]> findCells = null)
         {
             _list = list;
             _context = context;
-            _findCell = findCell;
+            _findCells = findCells;
         }
 
         public Expression Parse()
@@ -79,7 +80,8 @@ namespace ExcelFormulaExpressionParser
 
             if (CurrentToken.Type == TokenType.OperatorInfix)
             {
-                if (CurrentToken.Subtype == TokenSubtype.Math && (CurrentToken.Value == "^" || CurrentToken.Value == "*" || CurrentToken.Value == "/"))
+                if (CurrentToken.Subtype == TokenSubtype.Math &&
+                    (CurrentToken.Value == "^" || CurrentToken.Value == "*" || CurrentToken.Value == "/"))
                 {
                     var op = CurrentToken;
                     Next();
@@ -129,6 +131,39 @@ namespace ExcelFormulaExpressionParser
                         default:
                             throw new NotSupportedException(op.Value);
                     }
+                }
+                else if (CurrentToken.Subtype == TokenSubtype.Union)
+                {
+                    //Next();
+                    //left = ParseOperatorPrefix();
+
+                    //var tokens = new List<ExcelFormulaToken>();
+
+                    //Next();
+
+                    //while (CurrentToken.Subtype == TokenSubtype.Union && CurrentToken.Value == ",")
+                    //{
+                    //    tokens.Add(CurrentToken);
+                    //    Next();
+                    //}
+
+                    //Next();
+
+                    //var subexpressionParser = new ExpressionParser(tokens, _context, _findCells);
+                    //left = subexpressionParser.Parse();
+
+                    //var op = CurrentToken;
+                    //Next();
+                    //Expression right = ParseOperatorPrefix();
+
+                    //switch (op.Value)
+                    //{
+                    //    case ",":
+                    //        left = Expression.GreaterThan(left, right);
+                    //        break;
+                    //    default:
+                    //        throw new NotSupportedException(op.Value);
+                    //}
                 }
             }
 
@@ -189,29 +224,45 @@ namespace ExcelFormulaExpressionParser
                     var op = CurrentToken;
                     Next();
 
-                    if (_findCell != null)
+                    if (_findCells != null)
                     {
-                        var cell = _findCell(_context.Sheet, op.Value); // B1 or 'Sheet1'!B1
+                        var cells = _findCells(_context.Sheet, op.Value); // B1 or 'Sheet1'!B1
 
-                        ExcelFormula formula;
-                        if (cell.ExcelFormula != null)
+                        if (cells.Length == 0)
                         {
-                            formula = cell.ExcelFormula;
+                            throw new Exception("No cell(s) found.");
                         }
-                        else if (cell.ValueFormula != null)
+
+                        ExcelFormula excel;
+                        if (cells.Length == 1)
                         {
-                            formula = cell.ValueFormula;
+                            var cell = cells[0];
+                            excel = cell.ExcelFormula;
                         }
                         else
                         {
-                            formula = new ExcelFormula("=");
+                            //var argToken = ExcelFormula.CreateArgumentToken();
+                            //tokens = cells.Select(c => c.ExcelFormula.ToList()).Aggregate((total, next) =>
+                            //{
+                            //    var l = new List<ExcelFormulaToken>();
+                            //    l.AddRange(total);
+                            //    l.Add(argToken);
+                            //    l.AddRange(next);
+                            //    return l;
+                            //});
+
+                            //tokens = ExcelFormula.WrapInSubExpression(tokens);
+                            //int y = 9;
+
+                            string form = string.Join(", ", cells.Select(c => c.Value).Where(v => v != null));
+                            excel = new ExcelFormula($"=({form})");
                         }
 
-                        var cellExpressionParser = new ExpressionParser(formula, _context, _findCell);
+                        var cellExpressionParser = new ExpressionParser(excel, _context, _findCells);
                         return cellExpressionParser.Parse();
                     }
 
-                    throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'findCell' function is provided.");
+                    throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'findCells' function is provided.");
                 }
             }
 
@@ -230,7 +281,7 @@ namespace ExcelFormulaExpressionParser
 
                     Next();
 
-                    var subexpressionParser = new ExpressionParser(tokens, _context, _findCell);
+                    var subexpressionParser = new ExpressionParser(tokens, _context, _findCells);
                     return subexpressionParser.Parse();
                 }
             }
@@ -243,14 +294,13 @@ namespace ExcelFormulaExpressionParser
 
                     var arguments = new List<Expression>();
                     var tokens = new List<ExcelFormulaToken>();
-                    var argumentParser = new ExpressionParser(tokens, _context, _findCell);
 
                     Next();
                     while (CurrentToken.Subtype != TokenSubtype.Stop)
                     {
                         if (CurrentToken.Type == TokenType.Argument)
                         {
-                            arguments.Add(argumentParser.Parse());
+                            arguments.Add(new ExpressionParser(tokens, _context, _findCells).Parse());
 
                             tokens.Clear();
                         }
@@ -262,7 +312,7 @@ namespace ExcelFormulaExpressionParser
                         Next();
                     }
 
-                    arguments.Add(argumentParser.Parse());
+                    arguments.Add(new ExpressionParser(tokens, _context, _findCells).Parse());
 
                     Next();
 
@@ -291,6 +341,9 @@ namespace ExcelFormulaExpressionParser
 
                         case "SIN":
                             return MathExpression.Sin(arguments[0]);
+
+                        case "SUM":
+                            return MathExpression.Sum(arguments);
 
                         case "TRUNC":
                             return MathExpression.Trunc(arguments);

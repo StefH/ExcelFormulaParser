@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Compatibility;
 
@@ -35,12 +36,23 @@ namespace ExcelFormulaExpressionParser
             return Expression.Call(null, typeof(Math).FindMethod("Sin", new[] { typeof(double) }), value);
         }
 
-        public static Expression Trunc(IList<Expression> arguments)
+        public static Expression Sum(IList<Expression> expressions)
+        {
+            Expression result = expressions[0];
+            foreach (var expression in expressions.Skip(1))
+            {
+                result = Expression.Add(result, expression);
+            }
+
+            return result;
+        }
+
+        public static Expression Trunc(IList<Expression> expressions)
         {
             var truncateMethod = typeof(Math).FindMethod("Truncate", new[] {typeof(double)});
 
-            Expression digits = arguments.Count == 1 ? Constant0 : arguments[1];
-            Expression first = Expression.Multiply(arguments[0], Power(Constant10, digits));
+            Expression digits = expressions.Count == 1 ? Constant0 : expressions[1];
+            Expression first = Expression.Multiply(expressions[0], Power(Constant10, digits));
             Expression truncate = Expression.Call(null, truncateMethod, first);
 
             return Expression.Divide(truncate, Power(Constant10, digits));
