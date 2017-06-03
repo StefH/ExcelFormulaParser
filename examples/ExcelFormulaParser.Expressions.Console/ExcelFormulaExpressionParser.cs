@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 
 namespace ExcelFormulaParser.Expressions.Console
 {
@@ -12,11 +13,19 @@ namespace ExcelFormulaParser.Expressions.Console
         private ExcelFormulaToken CurrentToken => _list[_index];
 
         private readonly IList<ExcelFormulaToken> _list;
-        private readonly Func<string, XCell> _findCell;
+        private readonly ExcelFormulaContext _context;
+        private readonly Func<string, string, XCell> _findCell;
 
-        public ExcelFormulaExpressionParser(IList<ExcelFormulaToken> list, Func<string, XCell> findCell = null)
+        /// <summary>
+        /// ExcelFormulaExpressionParser
+        /// </summary>
+        /// <param name="list">The ExcelFormula or a list from ExcelFormulaToken.</param>
+        /// <param name="context">The ExcelFormulaContext.</param>
+        /// <param name="findCell">Function to find a cell by sheetname and address. (optional if no real Excel Workbook is parsed)</param>
+        public ExcelFormulaExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] Func<string, string, XCell> findCell = null)
         {
             _list = list;
+            _context = context;
             _findCell = findCell;
         }
 
@@ -133,7 +142,7 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     if (_findCell != null)
                     {
-                        var cell = _findCell(op.Value); // B1 or 'Sheet1'!B1
+                        var cell = _findCell(_context.Sheet, op.Value); // B1 or 'Sheet1'!B1
 
                         ExcelFormula formula;
                         if (cell.ExcelFormula != null)
@@ -149,7 +158,7 @@ namespace ExcelFormulaParser.Expressions.Console
                             formula = new ExcelFormula("=");
                         }
 
-                        var cellExpressionParser = new ExcelFormulaExpressionParser(formula, _findCell);
+                        var cellExpressionParser = new ExcelFormulaExpressionParser(formula, _context, _findCell);
                         return cellExpressionParser.Parse();
                     }
 
@@ -172,7 +181,7 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     Next();
 
-                    var subexpressionParser = new ExcelFormulaExpressionParser(tokens, _findCell);
+                    var subexpressionParser = new ExcelFormulaExpressionParser(tokens, _context, _findCell);
                     return subexpressionParser.Parse();
                 }
             }
@@ -185,7 +194,7 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     var arguments = new List<Expression>();
                     var tokens = new List<ExcelFormulaToken>();
-                    var argumentParser = new ExcelFormulaExpressionParser(tokens, _findCell);
+                    var argumentParser = new ExcelFormulaExpressionParser(tokens, _context, _findCell);
 
                     Next();
                     while (CurrentToken.Subtype != ExcelFormulaTokenSubtype.Stop)

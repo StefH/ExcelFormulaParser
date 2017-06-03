@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,19 +32,43 @@ namespace ExcelFormulaParser
         private readonly string _formula;
         private List<ExcelFormulaToken> _tokens = new List<ExcelFormulaToken>();
 
+        /// <summary>
+        /// Gets the number of ExcelFormulaToken which are parsed for this ExcelFormula.
+        /// </summary>
         public int Count => _tokens.Count;
 
-        public string Formula => _formula;
-
+        /// <summary>
+        /// Gets a value indicating whether this ExcelFormula is read-only.
+        /// </summary>
         public bool IsReadOnly => true;
 
+        /// <summary>
+        /// The ExcelFormula.
+        /// </summary>
+        public string Formula => _formula;
+
+        /// <summary>
+        /// The optional context for this formula, can be anything, e.g. the Sheet or Workbook.
+        /// </summary>
+        public IExcelFormulaContext Context { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the ExcelFormulaToken at the specified index.
+        /// </summary>
+        /// <param name="index">The zero-based index of the element to get or set.</param>
+        /// <returns>The ExcelFormulaToken at the specified index.</returns>
         public ExcelFormulaToken this[int index]
         {
             get => _tokens[index];
             set => throw new NotSupportedException();
         }
 
-        public ExcelFormula(string formula)
+        /// <summary>
+        /// Constructs a ExcelFormula.
+        /// </summary>
+        /// <param name="formula">The Excel formula.</param>
+        /// <param name="context">The optional context (can be anything, e.g. the Sheet or Workbook)</param>
+        public ExcelFormula([NotNull] string formula, [CanBeNull] IExcelFormulaContext context = null)
         {
             if (string.IsNullOrEmpty(formula))
             {
@@ -51,6 +76,7 @@ namespace ExcelFormulaParser
             }
 
             _formula = formula.Trim();
+            Context = context;
 
             ParseToTokens();
         }

@@ -25,7 +25,7 @@ namespace ExcelFormulaParser.Expressions.Console
                 var sheets = new List<XSheet>();
                 foreach (var worksheet in package.Workbook.Worksheets)
                 {
-                    var sheet = new XSheet();
+                    var sheet = new XSheet(worksheet.Name);
 
                     // Obtain the worksheet size 
                     ExcelCellAddress startCell = worksheet.Dimension.Start;
@@ -33,10 +33,10 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     for (int r = startCell.Row; r <= endCell.Row; r++)
                     {
-                        var xrow = new XRow();
+                        var xrow = new XRow(sheet);
                         for (int c = startCell.Column; c <= endCell.Column; c++)
                         {
-                            xrow.Cells.Add(ToXCell(worksheet.Cells[r, c]));
+                            xrow.Cells.Add(ToXCell(xrow, worksheet.Cells[r, c]));
                         }
 
                         sheet.Rows.Add(xrow);
@@ -47,13 +47,26 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 var calcCell = sheets[0].Rows[3].Cells[1];
 
-                Func<string, XCell> find = address =>
+                Func<string, string, XCell> findCellBySheetAndAddress = (sheetName, address) =>
                 {
-                    var rows = sheets.SelectMany(s => s.Rows);
-                    return rows.SelectMany(r => r.Cells).FirstOrDefault(c => address.Contains('!') ? c.FullAddress == address : c.Address == address);
+                    XSheet sheet;
+                    if (!address.Contains('!'))
+                    {
+                        // Same sheet
+                        sheet = sheets.First(s => s.Name == sheetName);
+                    }
+                    else
+                    {
+                        // Other sheet
+                        string[] parts = address.Split('!');
+                        sheet = sheets.First(s => s.Name == parts[0]);
+                        address = parts[1];
+                    }
+
+                    return sheet.Rows.SelectMany(r => r.Cells).FirstOrDefault(c => c.Address == address);
                 };
 
-                var parser = new ExcelFormulaExpressionParser(calcCell.ExcelFormula, find);
+                var parser = new ExcelFormulaExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, findCellBySheetAndAddress);
 
                 Expression x = parser.Parse();
                 System.Console.WriteLine($"Expression = `{x}`");
@@ -72,12 +85,17 @@ namespace ExcelFormulaParser.Expressions.Console
             }
         }
 
-        private static XCell ToXCell(ExcelRange r)
+        private static XCell ToXCell(XRow row, ExcelRange r)
         {
-            var c = new XCell
+            var c = new XCell(row)
             {
                 Address = r.Address,
                 FullAddress = $"{r.Worksheet.Name}!{r.Address}"
+            };
+
+            var context = new ExcelFormulaContext
+            {
+                Sheet = r.Worksheet.Name
             };
 
             if (r.Value != null)
@@ -86,18 +104,18 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 if (r.Value.IsNumeric())
                 {
-                    c.ValueFormula = new ExcelFormula("=" + r.Value);
+                    c.ValueFormula = new ExcelFormula("=" + r.Value, context);
                 }
                 else
                 {
-                    c.ValueFormula = new ExcelFormula(string.Format("=\"{0}\"", r.Text));
+                    c.ValueFormula = new ExcelFormula(string.Format("=\"{0}\"", r.Text), context);
                 }
             }
 
             if (!string.IsNullOrEmpty(r.Formula))
             {
                 c.Formula = "=" + r.Formula;
-                c.ExcelFormula = new ExcelFormula(c.Formula);
+                c.ExcelFormula = new ExcelFormula(c.Formula, context);
             }
 
             return c;
@@ -106,8 +124,8 @@ namespace ExcelFormulaParser.Expressions.Console
         private static void CalcTest1()
         {
             // haakjes, machtsverheffen, vermenigvuldigen, delen, worteltrekken, optellen, aftrekken
-            var excelFormula = new ExcelFormula("=-(1+2) * ROUND(4 / 2.7, 2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926 / 2) + ABS(-1)");
-            var parser = new ExcelFormulaExpressionParser(excelFormula);
+            var excelFormula = new ExcelFormula("=-(1+2) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
+            var parser = new ExcelFormulaExpressionParser(excelFormula, null);
 
             Expression x = parser.Parse();
             System.Console.WriteLine($"Expression = `{x}`");

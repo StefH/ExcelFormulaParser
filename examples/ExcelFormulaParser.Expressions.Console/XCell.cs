@@ -13,5 +13,12 @@
         public string Formula { get; set; }
 
         public ExcelFormula ExcelFormula { get; set; }
+
+        public XRow Row { get; }
+
+        public XCell(XRow row)
+        {
+            Row = row;
+        }
     }
 }

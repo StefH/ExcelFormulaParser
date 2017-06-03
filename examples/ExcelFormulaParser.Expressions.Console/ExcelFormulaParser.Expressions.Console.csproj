@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="EPPlus.Core" Version="1.4.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="10.4.0" />
     <PackageReference Include="Linq.Expression.Optimizer" Version="1.0.8" />
   </ItemGroup>
 

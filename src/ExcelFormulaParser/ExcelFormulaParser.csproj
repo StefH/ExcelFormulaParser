@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net20;net452;netstandard1.0</TargetFrameworks>
-    <VersionPrefix>1.0.1.0</VersionPrefix>
+    <VersionPrefix>1.0.2.0</VersionPrefix>
     <Authors>E. W. Bachtal;Stef Heyenrath</Authors>
     <Copyright>E. W. Bachtal</Copyright>
     <ApplicationIcon>../../Images/Excel.ico</ApplicationIcon>
@@ -18,5 +18,13 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <DebugType>full</DebugType>
   </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net20' ">
+    <PackageReference Include="JetBrains.Annotations" Version="9.2.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net20' ">
+    <PackageReference Include="JetBrains.Annotations" Version="10.4.0" PrivateAssets="All" />
+  </ItemGroup>
 
 </Project>
