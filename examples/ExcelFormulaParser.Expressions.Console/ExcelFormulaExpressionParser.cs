@@ -119,6 +119,14 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             if (CurrentToken.Type == ExcelFormulaTokenType.Operand)
             {
+                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Logical)
+                {
+                    var op = CurrentToken;
+                    Next();
+
+                    return Expression.Constant(bool.Parse(op.Value));
+                }
+
                 if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Number)
                 {
                     var op = CurrentToken;
@@ -222,8 +230,17 @@ namespace ExcelFormulaParser.Expressions.Console
                         case "ABS":
                             return MathExpression.Abs(arguments[0]);
 
+                        case "AND":
+                            return LogicalExpressions.And(arguments);
+
                         case "COS":
                             return MathExpression.Cos(arguments[0]);
+
+                        case "IF":
+                            return Expression.Condition(arguments[0], arguments[1], arguments[2]);
+
+                        case "OR":
+                            return LogicalExpressions.Or(arguments);
 
                         case "POWER":
                             return Expression.Power(arguments[0], arguments[1]);

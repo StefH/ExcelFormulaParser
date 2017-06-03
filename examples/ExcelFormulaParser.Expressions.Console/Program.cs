@@ -73,13 +73,26 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 var o = x.Optimize();
 
-                System.Console.WriteLine($"Expression = `{o}`");
+                System.Console.WriteLine($"Expression Optimize = `{o}`");
 
                 LambdaExpression le = Expression.Lambda(o);
 
                 var result = le.Compile().DynamicInvoke();
 
                 System.Console.WriteLine($"result = `{result}`");
+
+                var bool2 = sheets[0].Rows[4].Cells[1];
+                var boolParser = new ExcelFormulaExpressionParser(bool2.ExcelFormula, (ExcelFormulaContext)bool2.ExcelFormula.Context, findCellBySheetAndAddress);
+
+                Expression bx = boolParser.Parse();
+                System.Console.WriteLine($"Expression = `{bx}`");
+
+                var o2 = bx.Optimize();
+
+                System.Console.WriteLine($"Expression Optimize = `{o2}`");
+
+                var bresult = Expression.Lambda(o2).Compile().DynamicInvoke();
+                System.Console.WriteLine($"bresult = `{bresult}`");
 
                 int u = 0;
             }
@@ -102,7 +115,11 @@ namespace ExcelFormulaParser.Expressions.Console
             {
                 c.Value = r.Value;
 
-                if (r.Value.IsNumeric())
+                if (r.Value is bool)
+                {
+                    c.ValueFormula = new ExcelFormula((bool) r.Value ? "=TRUE" : "=FALSE", context);
+                }
+                else if (r.Value.IsNumeric())
                 {
                     c.ValueFormula = new ExcelFormula("=" + r.Value, context);
                 }
