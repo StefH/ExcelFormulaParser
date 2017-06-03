@@ -74,7 +74,8 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             Expression left = ParseOperatorPrefix();
 
-            while (CurrentToken.Type == ExcelFormulaTokenType.OperatorInfix && CurrentToken.Subtype == ExcelFormulaTokenSubtype.Math && (CurrentToken.Value == "*" || CurrentToken.Value == "/"))
+            while (CurrentToken.Type == ExcelFormulaTokenType.OperatorInfix && CurrentToken.Subtype == ExcelFormulaTokenSubtype.Math &&
+                (CurrentToken.Value == "^" || CurrentToken.Value == "*" || CurrentToken.Value == "/"))
             {
                 var op = CurrentToken;
                 Next();
@@ -82,6 +83,9 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 switch (op.Value)
                 {
+                    case "^":
+                        left = MathExpressions.Power(left, right);
+                        break;
                     case "*":
                         left = Expression.Multiply(left, right);
                         break;

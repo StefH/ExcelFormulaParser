@@ -141,7 +141,7 @@ namespace ExcelFormulaParser.Expressions.Console
         private static void CalcTest1()
         {
             // haakjes, machtsverheffen, vermenigvuldigen, delen, worteltrekken, optellen, aftrekken
-            var excelFormula = new ExcelFormula("=-(1+2) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
+            var excelFormula = new ExcelFormula("=2^3 - -(1+2) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
             var parser = new ExcelFormulaExpressionParser(excelFormula);
 
             Expression x = parser.Parse();
