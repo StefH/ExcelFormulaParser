@@ -228,13 +228,13 @@ namespace ExcelFormulaParser.Expressions.Console
                     switch (functionName)
                     {
                         case "ABS":
-                            return MathExpression.Abs(arguments[0]);
+                            return MathExpressions.Abs(arguments[0]);
 
                         case "AND":
                             return LogicalExpressions.And(arguments);
 
                         case "COS":
-                            return MathExpression.Cos(arguments[0]);
+                            return MathExpressions.Cos(arguments[0]);
 
                         case "IF":
                             return Expression.Condition(arguments[0], arguments[1], arguments[2]);
@@ -243,13 +243,16 @@ namespace ExcelFormulaParser.Expressions.Console
                             return LogicalExpressions.Or(arguments);
 
                         case "POWER":
-                            return Expression.Power(arguments[0], arguments[1]);
+                            return MathExpressions.Power(arguments[0], arguments[1]);
 
                         case "ROUND":
-                            return MathExpression.Round(arguments[0], arguments[1]);
+                            return MathExpressions.Round(arguments[0], arguments[1]);
 
                         case "SIN":
-                            return MathExpression.Sin(arguments[0]);
+                            return MathExpressions.Sin(arguments[0]);
+
+                        case "TRUNC":
+                            return MathExpressions.Trunc(arguments);
 
                         default:
                             throw new NotImplementedException(functionName);

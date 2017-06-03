@@ -142,7 +142,7 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             // haakjes, machtsverheffen, vermenigvuldigen, delen, worteltrekken, optellen, aftrekken
             var excelFormula = new ExcelFormula("=-(1+2) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
-            var parser = new ExcelFormulaExpressionParser(excelFormula, null);
+            var parser = new ExcelFormulaExpressionParser(excelFormula);
 
             Expression x = parser.Parse();
             System.Console.WriteLine($"Expression = `{x}`");
@@ -156,6 +156,12 @@ namespace ExcelFormulaParser.Expressions.Console
             var result = le.Compile().DynamicInvoke();
 
             System.Console.WriteLine($"result = `{result}`");
+
+            var trunc2 = new ExcelFormula("=TRUNC(91.789, 2)");
+            System.Console.WriteLine("trunc2 = `{0}`", Expression.Lambda(new ExcelFormulaExpressionParser(trunc2).Parse()).Compile().DynamicInvoke());
+
+            var trunc0 = new ExcelFormula("=TRUNC(91.789)");
+            System.Console.WriteLine("trunc0 = `{0}`", Expression.Lambda(new ExcelFormulaExpressionParser(trunc0).Parse()).Compile().DynamicInvoke());
         }
     }
 }
