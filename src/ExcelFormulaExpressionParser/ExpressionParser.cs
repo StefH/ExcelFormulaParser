@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Expressions;
+using ExcelFormulaParser;
 using JetBrains.Annotations;
+using TokenType = ExcelFormulaParser.ExcelFormulaTokenType;
+using TokenSubtype = ExcelFormulaParser.ExcelFormulaTokenSubtype;
 
-namespace ExcelFormulaParser.Expressions.Console
+namespace ExcelFormulaExpressionParser
 {
-    class ExcelFormulaExpressionParser
+    public class ExpressionParser
     {
         private int _index;
 
@@ -17,12 +20,12 @@ namespace ExcelFormulaParser.Expressions.Console
         private readonly Func<string, string, XCell> _findCell;
 
         /// <summary>
-        /// ExcelFormulaExpressionParser
+        /// ExpressionParser
         /// </summary>
         /// <param name="list">The ExcelFormula or a list from ExcelFormulaToken.</param>
         /// <param name="context">The ExcelFormulaContext.</param>
         /// <param name="findCell">Function to find a cell by sheetname and address. (optional if no real Excel Workbook is parsed)</param>
-        public ExcelFormulaExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] Func<string, string, XCell> findCell = null)
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] Func<string, string, XCell> findCell = null)
         {
             _list = list;
             _context = context;
@@ -47,13 +50,13 @@ namespace ExcelFormulaParser.Expressions.Console
         // +, -
         private Expression ParseAdditive()
         {
-            Expression left = ParseMultiplicative();
+            Expression left = ParseOperatorInfix();
 
-            while (CurrentToken.Type == ExcelFormulaTokenType.OperatorInfix && CurrentToken.Subtype == ExcelFormulaTokenSubtype.Math && (CurrentToken.Value == "+" || CurrentToken.Value == "-"))
+            if (CurrentToken.Type == TokenType.OperatorInfix && CurrentToken.Subtype == TokenSubtype.Math && (CurrentToken.Value == "+" || CurrentToken.Value == "-"))
             {
                 var op = CurrentToken;
                 Next();
-                Expression right = ParseMultiplicative();
+                Expression right = ParseOperatorInfix();
 
                 switch (op.Value)
                 {
@@ -69,29 +72,63 @@ namespace ExcelFormulaParser.Expressions.Console
             return left;
         }
 
-        // *, /
-        private Expression ParseMultiplicative()
+        // *, /, ^
+        private Expression ParseOperatorInfix()
         {
             Expression left = ParseOperatorPrefix();
 
-            while (CurrentToken.Type == ExcelFormulaTokenType.OperatorInfix && CurrentToken.Subtype == ExcelFormulaTokenSubtype.Math &&
-                (CurrentToken.Value == "^" || CurrentToken.Value == "*" || CurrentToken.Value == "/"))
+            if (CurrentToken.Type == TokenType.OperatorInfix)
             {
-                var op = CurrentToken;
-                Next();
-                Expression right = ParseOperatorPrefix();
-
-                switch (op.Value)
+                if (CurrentToken.Subtype == TokenSubtype.Math && (CurrentToken.Value == "^" || CurrentToken.Value == "*" || CurrentToken.Value == "/"))
                 {
-                    case "^":
-                        left = MathExpressions.Power(left, right);
-                        break;
-                    case "*":
-                        left = Expression.Multiply(left, right);
-                        break;
-                    case "/":
-                        left = Expression.Divide(left, right);
-                        break;
+                    var op = CurrentToken;
+                    Next();
+                    Expression right = ParseOperatorPrefix();
+
+                    switch (op.Value)
+                    {
+                        case "^":
+                            left = MathExpression.Power(left, right);
+                            break;
+                        case "*":
+                            left = Expression.Multiply(left, right);
+                            break;
+                        case "/":
+                            left = Expression.Divide(left, right);
+                            break;
+                        default:
+                            throw new NotSupportedException(op.Value);
+                    }
+                }
+                else if (CurrentToken.Subtype == TokenSubtype.Logical)
+                {
+                    var op = CurrentToken;
+                    Next();
+                    Expression right = ParseOperatorPrefix();
+
+                    switch (op.Value)
+                    {
+                        case ">":
+                            left = Expression.GreaterThan(left, right);
+                            break;
+                        case ">=":
+                            left = Expression.GreaterThanOrEqual(left, right);
+                            break;
+                        case "<":
+                            left = Expression.LessThan(left, right);
+                            break;
+                        case "<=":
+                            left = Expression.LessThanOrEqual(left, right);
+                            break;
+                        case "<>":
+                            left = Expression.NotEqual(left, right);
+                            break;
+                        case "=":
+                            left = Expression.Equal(left, right);
+                            break;
+                        default:
+                            throw new NotSupportedException(op.Value);
+                    }
                 }
             }
 
@@ -103,7 +140,7 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             Expression left = ParsePrimary();
 
-            if (CurrentToken.Type == ExcelFormulaTokenType.OperatorPrefix && CurrentToken.Value == "-")
+            if (CurrentToken.Type == TokenType.OperatorPrefix && CurrentToken.Value == "-")
             {
                 var op = CurrentToken;
                 Next();
@@ -121,9 +158,9 @@ namespace ExcelFormulaParser.Expressions.Console
 
         private Expression ParsePrimary()
         {
-            if (CurrentToken.Type == ExcelFormulaTokenType.Operand)
+            if (CurrentToken.Type == TokenType.Operand)
             {
-                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Logical)
+                if (CurrentToken.Subtype == TokenSubtype.Logical)
                 {
                     var op = CurrentToken;
                     Next();
@@ -131,7 +168,7 @@ namespace ExcelFormulaParser.Expressions.Console
                     return Expression.Constant(bool.Parse(op.Value));
                 }
 
-                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Number)
+                if (CurrentToken.Subtype == TokenSubtype.Number)
                 {
                     var op = CurrentToken;
                     Next();
@@ -139,7 +176,7 @@ namespace ExcelFormulaParser.Expressions.Console
                     return Expression.Constant(double.Parse(op.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
                 }
 
-                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Text)
+                if (CurrentToken.Subtype == TokenSubtype.Text)
                 {
                     var op = CurrentToken;
                     Next();
@@ -147,7 +184,7 @@ namespace ExcelFormulaParser.Expressions.Console
                     return Expression.Constant(op.Value);
                 }
 
-                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Range)
+                if (CurrentToken.Subtype == TokenSubtype.Range)
                 {
                     var op = CurrentToken;
                     Next();
@@ -170,7 +207,7 @@ namespace ExcelFormulaParser.Expressions.Console
                             formula = new ExcelFormula("=");
                         }
 
-                        var cellExpressionParser = new ExcelFormulaExpressionParser(formula, _context, _findCell);
+                        var cellExpressionParser = new ExpressionParser(formula, _context, _findCell);
                         return cellExpressionParser.Parse();
                     }
 
@@ -178,14 +215,14 @@ namespace ExcelFormulaParser.Expressions.Console
                 }
             }
 
-            if (CurrentToken.Type == ExcelFormulaTokenType.Subexpression)
+            if (CurrentToken.Type == TokenType.Subexpression)
             {
-                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Start)
+                if (CurrentToken.Subtype == TokenSubtype.Start)
                 {
                     var tokens = new List<ExcelFormulaToken>();
 
                     Next();
-                    while (CurrentToken.Subtype != ExcelFormulaTokenSubtype.Stop)
+                    while (CurrentToken.Subtype != TokenSubtype.Stop)
                     {
                         tokens.Add(CurrentToken);
                         Next();
@@ -193,25 +230,25 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     Next();
 
-                    var subexpressionParser = new ExcelFormulaExpressionParser(tokens, _context, _findCell);
+                    var subexpressionParser = new ExpressionParser(tokens, _context, _findCell);
                     return subexpressionParser.Parse();
                 }
             }
 
-            if (CurrentToken.Type == ExcelFormulaTokenType.Function)
+            if (CurrentToken.Type == TokenType.Function)
             {
-                if (CurrentToken.Subtype == ExcelFormulaTokenSubtype.Start)
+                if (CurrentToken.Subtype == TokenSubtype.Start)
                 {
                     string functionName = CurrentToken.Value;
 
                     var arguments = new List<Expression>();
                     var tokens = new List<ExcelFormulaToken>();
-                    var argumentParser = new ExcelFormulaExpressionParser(tokens, _context, _findCell);
+                    var argumentParser = new ExpressionParser(tokens, _context, _findCell);
 
                     Next();
-                    while (CurrentToken.Subtype != ExcelFormulaTokenSubtype.Stop)
+                    while (CurrentToken.Subtype != TokenSubtype.Stop)
                     {
-                        if (CurrentToken.Type == ExcelFormulaTokenType.Argument)
+                        if (CurrentToken.Type == TokenType.Argument)
                         {
                             arguments.Add(argumentParser.Parse());
 
@@ -232,31 +269,31 @@ namespace ExcelFormulaParser.Expressions.Console
                     switch (functionName)
                     {
                         case "ABS":
-                            return MathExpressions.Abs(arguments[0]);
+                            return MathExpression.Abs(arguments[0]);
 
                         case "AND":
-                            return LogicalExpressions.And(arguments);
+                            return LogicalExpression.And(arguments);
 
                         case "COS":
-                            return MathExpressions.Cos(arguments[0]);
+                            return MathExpression.Cos(arguments[0]);
 
                         case "IF":
                             return Expression.Condition(arguments[0], arguments[1], arguments[2]);
 
                         case "OR":
-                            return LogicalExpressions.Or(arguments);
+                            return LogicalExpression.Or(arguments);
 
                         case "POWER":
-                            return MathExpressions.Power(arguments[0], arguments[1]);
+                            return MathExpression.Power(arguments[0], arguments[1]);
 
                         case "ROUND":
-                            return MathExpressions.Round(arguments[0], arguments[1]);
+                            return MathExpression.Round(arguments[0], arguments[1]);
 
                         case "SIN":
-                            return MathExpressions.Sin(arguments[0]);
+                            return MathExpression.Sin(arguments[0]);
 
                         case "TRUNC":
-                            return MathExpressions.Trunc(arguments);
+                            return MathExpression.Trunc(arguments);
 
                         default:
                             throw new NotImplementedException(functionName);

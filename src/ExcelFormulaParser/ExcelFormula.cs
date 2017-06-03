@@ -50,7 +50,7 @@ namespace ExcelFormulaParser
         /// <summary>
         /// The optional context for this formula, can be anything, e.g. the Sheet or Workbook.
         /// </summary>
-        public IExcelFormulaContext Context { get; private set; }
+        public IExcelFormulaContext Context { get; }
 
         /// <summary>
         /// Gets or sets the ExcelFormulaToken at the specified index.
@@ -349,7 +349,7 @@ namespace ExcelFormulaParser
                         tokens1.Add(new ExcelFormulaToken(value, ExcelFormulaTokenType.Operand));
                         value = string.Empty;
                     }
-                    tokens1.Add(new ExcelFormulaToken("", ExcelFormulaTokenType.Whitespace));
+                    tokens1.Add(new ExcelFormulaToken(string.Empty, ExcelFormulaTokenType.Whitespace));
                     index++;
                     while (_formula[index] == Whitespace && index < _formula.Length)
                     {
@@ -410,7 +410,7 @@ namespace ExcelFormulaParser
                     }
                     else
                     {
-                        stack.Push(tokens1.Add(new ExcelFormulaToken("", ExcelFormulaTokenType.Subexpression, ExcelFormulaTokenSubtype.Start)));
+                        stack.Push(tokens1.Add(new ExcelFormulaToken(String.Empty, ExcelFormulaTokenType.Subexpression, ExcelFormulaTokenSubtype.Start)));
                     }
                     index++;
                     continue;
@@ -519,7 +519,7 @@ namespace ExcelFormulaParser
                     continue;
                 }
 
-                tokens2.Add(new ExcelFormulaToken("", ExcelFormulaTokenType.OperatorInfix, ExcelFormulaTokenSubtype.Intersection));
+                tokens2.Add(new ExcelFormulaToken(string.Empty, ExcelFormulaTokenType.OperatorInfix, ExcelFormulaTokenSubtype.Intersection));
             }
 
             // move tokens to final list, switching infix "-" operators to prefix when appropriate, switching infix "+" operators 

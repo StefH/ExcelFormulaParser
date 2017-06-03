@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace ExcelFormulaParser.Expressions.Console
+namespace ExcelFormulaExpressionParser
 {
-    internal static class LogicalExpressions
+    internal static class LogicalExpression
     {
         public static Expression And(IList<Expression> expressions)
         {

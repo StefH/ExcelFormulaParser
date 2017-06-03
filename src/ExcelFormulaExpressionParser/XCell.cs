@@ -1,4 +1,6 @@
-﻿namespace ExcelFormulaParser.Expressions.Console
+﻿using ExcelFormulaParser;
+
+namespace ExcelFormulaExpressionParser
 {
     public class XCell
     {

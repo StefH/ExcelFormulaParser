@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using ExcelFormulaExpressionParser;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Utilities;
 
@@ -13,7 +14,7 @@ namespace ExcelFormulaParser.Expressions.Console
         static void Main(string[] args)
         {
             ExcelTest();
-            CalcTest1();
+            CalcTest();
         }
 
         private static void ExcelTest()
@@ -66,7 +67,7 @@ namespace ExcelFormulaParser.Expressions.Console
                     return sheet.Rows.SelectMany(r => r.Cells).FirstOrDefault(c => c.Address == address);
                 };
 
-                var parser = new ExcelFormulaExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, findCellBySheetAndAddress);
+                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, findCellBySheetAndAddress);
 
                 Expression x = parser.Parse();
                 System.Console.WriteLine($"Expression = `{x}`");
@@ -82,7 +83,7 @@ namespace ExcelFormulaParser.Expressions.Console
                 System.Console.WriteLine($"result = `{result}`");
 
                 var bool2 = sheets[0].Rows[4].Cells[1];
-                var boolParser = new ExcelFormulaExpressionParser(bool2.ExcelFormula, (ExcelFormulaContext)bool2.ExcelFormula.Context, findCellBySheetAndAddress);
+                var boolParser = new ExpressionParser(bool2.ExcelFormula, (ExcelFormulaContext)bool2.ExcelFormula.Context, findCellBySheetAndAddress);
 
                 Expression bx = boolParser.Parse();
                 System.Console.WriteLine($"Expression = `{bx}`");
@@ -138,11 +139,11 @@ namespace ExcelFormulaParser.Expressions.Console
             return c;
         }
 
-        private static void CalcTest1()
+        private static void CalcTest()
         {
             // haakjes, machtsverheffen, vermenigvuldigen, delen, worteltrekken, optellen, aftrekken
-            var excelFormula = new ExcelFormula("=2^3 - -(1+2) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
-            var parser = new ExcelFormulaExpressionParser(excelFormula);
+            var excelFormula = new ExcelFormula("=2^3 - -(1+1+1) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
+            var parser = new ExpressionParser(excelFormula);
 
             Expression x = parser.Parse();
             System.Console.WriteLine($"Expression = `{x}`");
@@ -158,10 +159,13 @@ namespace ExcelFormulaParser.Expressions.Console
             System.Console.WriteLine($"result = `{result}`");
 
             var trunc2 = new ExcelFormula("=TRUNC(91.789, 2)");
-            System.Console.WriteLine("trunc2 = `{0}`", Expression.Lambda(new ExcelFormulaExpressionParser(trunc2).Parse()).Compile().DynamicInvoke());
+            System.Console.WriteLine("trunc2 = `{0}`", Expression.Lambda(new ExpressionParser(trunc2).Parse()).Compile().DynamicInvoke());
 
             var trunc0 = new ExcelFormula("=TRUNC(91.789)");
-            System.Console.WriteLine("trunc0 = `{0}`", Expression.Lambda(new ExcelFormulaExpressionParser(trunc0).Parse()).Compile().DynamicInvoke());
+            System.Console.WriteLine("trunc0 = `{0}`", Expression.Lambda(new ExpressionParser(trunc0).Parse()).Compile().DynamicInvoke());
+
+            var gt = new ExcelFormula("=1>2");
+            System.Console.WriteLine("gt = `{0}`", Expression.Lambda(new ExpressionParser(gt).Parse()).Compile().DynamicInvoke());
         }
     }
 }

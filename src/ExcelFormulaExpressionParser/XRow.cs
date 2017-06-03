@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
-namespace ExcelFormulaParser.Expressions.Console
+namespace ExcelFormulaExpressionParser
 {
     public class XRow
     {
