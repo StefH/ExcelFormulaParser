@@ -88,6 +88,20 @@ namespace ExcelFormulaParser.Expressions.Console
                 var sumresult = Expression.Lambda(sumEOpt).Compile().DynamicInvoke();
                 System.Console.WriteLine($"sumresult = `{sumresult}`");
 
+
+                var sumSqrt = sheets[3].Rows[0].Cells[1];
+                var sumSqrtParser = new ExpressionParser(sumSqrt.ExcelFormula, (ExcelFormulaContext)sumSqrt.ExcelFormula.Context, sheets);
+
+                Expression sumSqrtE = sumSqrtParser.Parse();
+                //System.Console.WriteLine($"Expression = `{sumSqrtE}`");
+
+                var sumSqrtEOpt = sumSqrtE.Optimize();
+
+                //System.Console.WriteLine($"Expression Optimize = `{sumSqrtEOpt}`");
+
+                var sumSqrtresult = Expression.Lambda(sumSqrtEOpt).Compile().DynamicInvoke();
+                System.Console.WriteLine($"sumresult = `{sumSqrtresult}`");
+
                 int u = 0;
             }
         }

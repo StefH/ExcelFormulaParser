@@ -297,6 +297,7 @@ namespace ExcelFormulaExpressionParser
                         case "POWER": return MathExpression.Power(arguments[0], arguments[1]);
                         case "ROUND": return MathExpression.Round(arguments[0], arguments[1]);
                         case "SIN": return MathExpression.Sin(arguments[0]);
+                        case "SQRT": return MathExpression.Sqrt(arguments[0]);
                         case "SUM": return MathExpression.Sum(arguments);
                         case "TRUNC": return MathExpression.Trunc(arguments);
 

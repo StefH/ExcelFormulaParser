@@ -36,6 +36,11 @@ namespace ExcelFormulaExpressionParser
             return Expression.Call(null, typeof(Math).FindMethod("Sin", new[] { typeof(double) }), value);
         }
 
+        public static Expression Sqrt(Expression value)
+        {
+            return Expression.Call(null, typeof(Math).FindMethod("Sqrt", new[] { typeof(double) }), value);
+        }
+
         public static Expression Sum(IList<Expression> expressions)
         {
             Expression result = expressions[0];
