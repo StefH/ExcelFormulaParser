@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using ExcelFormulaExpressionParser.Utils;
 using ExcelFormulaParser;
 using JetBrains.Annotations;
 using TokenType = ExcelFormulaParser.ExcelFormulaTokenType;
@@ -18,19 +19,24 @@ namespace ExcelFormulaExpressionParser
 
         private readonly IList<ExcelFormulaToken> _list;
         private readonly ExcelFormulaContext _context;
-        private readonly Func<string, string, XCell[]> _findCells;
+        private readonly CellFinder _finder;
 
         /// <summary>
         /// ExpressionParser
         /// </summary>
-        /// <param name="list">The ExcelFormula or a list from ExcelFormulaToken.</param>
+        /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
         /// <param name="context">The ExcelFormulaContext.</param>
-        /// <param name="findCells">Function to find cells by sheetname and address. (optional if no real Excel Workbook is parsed)</param>
-        public ExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] Func<string, string, XCell[]> findCells = null)
+        /// <param name="sheets">The XSheets from a Excel Workbook. (Optional if no real Excel Workbook is parsed.)</param>
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] IList<XSheet> sheets = null) :
+            this(tokens, context, sheets != null ? new CellFinder(sheets) : null)
+        {
+        }
+
+        private ExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] CellFinder finder = null)
         {
             _list = list;
             _context = context;
-            _findCells = findCells;
+            _finder = finder;
         }
 
         public Expression Parse()
@@ -221,13 +227,14 @@ namespace ExcelFormulaExpressionParser
 
                     Next();
 
-                    var subexpressionParser = new ExpressionParser(tokens, _context, _findCells);
-                    return subexpressionParser.Parse();
+                    return Parse(tokens, _context);
                 }
             }
 
             return left;
         }
+
+        
 
         private Expression ParseFunction()
         {
@@ -237,6 +244,23 @@ namespace ExcelFormulaExpressionParser
             {
                 if (CT.Subtype == TokenSubtype.Start)
                 {
+                    void AddToArgumentsList(List<Expression> args, Expression expression)
+                    {
+                        var constantExpression = expression as ConstantExpression;
+                        if (constantExpression != null && constantExpression.Type == typeof(Expression[]))
+                        {
+                            var array = constantExpression.Value as Expression[];
+                            if (array != null)
+                            {
+                                args.AddRange(array);
+                            }
+                        }
+                        else
+                        {
+                            args.Add(expression);
+                        }
+                    }
+
                     string functionName = CT.Value;
 
                     var arguments = new List<Expression>();
@@ -247,7 +271,7 @@ namespace ExcelFormulaExpressionParser
                     {
                         if (CT.Type == TokenType.Argument)
                         {
-                            arguments.Add(new ExpressionParser(tokens, _context, _findCells).Parse());
+                            AddToArgumentsList(arguments, Parse(tokens, _context));
 
                             tokens.Clear();
                         }
@@ -259,7 +283,7 @@ namespace ExcelFormulaExpressionParser
                         Next();
                     }
 
-                    arguments.Add(new ExpressionParser(tokens, _context, _findCells).Parse());
+                    AddToArgumentsList(arguments, Parse(tokens, _context));
 
                     Next();
 
@@ -292,49 +316,35 @@ namespace ExcelFormulaExpressionParser
                 var op = CT;
                 Next();
 
-                if (_findCells != null)
+                if (_finder != null)
                 {
-                    var cells = _findCells(_context.Sheet, op.Value); // B1 or 'Sheet1'!B1
+                    var cells = _finder.Find(_context.Sheet, op.Value); // B1 or 'Sheet1'!B1
 
                     if (cells.Length == 0)
                     {
                         throw new Exception("No cell(s) found.");
                     }
 
-                    ExcelFormula excel;
                     if (cells.Length == 1)
                     {
                         var cell = cells[0];
-                        excel = cell.ExcelFormula;
-                    }
-                    else
-                    {
-                        //var argToken = ExcelFormula.CreateArgumentToken();
-                        //tokens = cells.Select(c => c.ExcelFormula.ToList()).Aggregate((total, next) =>
-                        //{
-                        //    var l = new List<ExcelFormulaToken>();
-                        //    l.AddRange(total);
-                        //    l.Add(argToken);
-                        //    l.AddRange(next);
-                        //    return l;
-                        //});
 
-                        //tokens = ExcelFormula.WrapInSubExpression(tokens);
-                        //int y = 9;
-
-                        string form = string.Join(", ", cells.Select(c => c.Value).Where(v => v != null));
-                        excel = new ExcelFormula($"=({form})");
+                        return cell.ExcelFormula != null ? Parse(cell.ExcelFormula, _context) : null;
                     }
 
-                    var cellExpressionParser = new ExpressionParser(excel, _context, _findCells);
-                    return cellExpressionParser.Parse();
+                    var expressions = cells.Where(c => c.ExcelFormula != null).Select(c => Parse(c.ExcelFormula, _context));
+                    return Expression.Constant(expressions.ToArray());
                 }
 
-                throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'findCells' function is provided.");
-
+                throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");
             }
 
             return null;
+        }
+
+        private Expression Parse(IList<ExcelFormulaToken> tokens, ExcelFormulaContext context)
+        {
+            return new ExpressionParser(tokens, context, _finder).Parse();
         }
     }
 }

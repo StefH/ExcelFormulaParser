@@ -1,4 +1,4 @@
-﻿namespace ExcelFormulaExpressionParser
+﻿namespace ExcelFormulaExpressionParser.Models
 {
     public class CellAddress
     {

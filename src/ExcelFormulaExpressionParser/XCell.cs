@@ -1,4 +1,5 @@
-﻿using ExcelFormulaParser;
+﻿using ExcelFormulaExpressionParser.Utils;
+using ExcelFormulaParser;
 
 namespace ExcelFormulaExpressionParser
 {
@@ -13,8 +14,6 @@ namespace ExcelFormulaExpressionParser
         public string FullAddress { get; set; }
 
         public object Value { get; set; }
-
-        // public ExcelFormula ValueFormula { get; set; }
 
         public string Formula { get; set; }
 

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using ExcelFormulaExpressionParser.Models;
 
-namespace ExcelFormulaExpressionParser
+namespace ExcelFormulaExpressionParser.Utils
 {
     public static class ExcelUtils
     {

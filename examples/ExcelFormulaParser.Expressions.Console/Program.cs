@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,7 +13,7 @@ namespace ExcelFormulaParser.Expressions.Console
         static void Main(string[] args)
         {
             ExcelTest();
-            //CalcTest();
+            CalcTest();
         }
 
         private static void ExcelTest()
@@ -46,91 +45,38 @@ namespace ExcelFormulaParser.Expressions.Console
                     sheets.Add(sheet);
                 }
 
-                Func<string, string, XCell[]> findCellsBySheetAndRange = (sheetName, address) =>
-                {
-                    XSheet sheet;
-                    if (!address.Contains(':'))
-                    {
-                        if (!address.Contains('!'))
-                        {
-                            // Same sheet
-                            sheet = sheets.First(s => s.Name == sheetName);
-                        }
-                        else
-                        {
-                            // Other sheet
-                            string[] parts = address.Split('!');
-                            sheet = sheets.First(s => s.Name == parts[0]);
-                            address = parts[1];
-                        }
+                var calcCell = sheets[0].Rows[3].Cells[1];
+                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, sheets);
 
-                        return new[] { sheet.Rows.SelectMany(r => r.Cells).FirstOrDefault(c => c.Address == address) };
-                    }
-                    
-                    string[] partsRange = address.Split(':');
-                    CellAddress start;
-                    CellAddress end;
+                Expression x = parser.Parse();
+                System.Console.WriteLine($"Expression = `{x}`");
 
-                    if (!address.Contains('!'))
-                    {
-                        // Same sheet
-                        sheet = sheets.First(s => s.Name == sheetName);
-                        start = ExcelUtils.ParseExcelAddress(partsRange[0]);
-                        end = ExcelUtils.ParseExcelAddress(partsRange[1]);
-                    }
-                    else
-                    {
-                        // Other sheet
-                        string[] partsStart = partsRange[0].Split('!');
-                        string[] partEnd = partsRange[1].Split('!');
+                var o = x.Optimize();
 
-                        sheet = sheets.First(s => s.Name == partsStart[0]);
-                        start = ExcelUtils.ParseExcelAddress(partsStart[1]);
-                        end = ExcelUtils.ParseExcelAddress(partEnd[1]);
+                System.Console.WriteLine($"Expression Optimize = `{o}`");
 
-                        int u00 = 0;
-                    }
+                LambdaExpression le = Expression.Lambda(o);
 
-                    return sheet.Rows.SelectMany(r => r.Cells)
-                        .Where(c =>
-                            c.Column >= start.Column && c.Column <= end.Column &&
-                            c.Row >= start.Row && c.Row <= end.Row
-                        )
-                        .ToArray();
-                };
+                var result = le.Compile().DynamicInvoke();
 
-                //var calcCell = sheets[0].Rows[3].Cells[1];
-                //var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, findCellsBySheetAndRange);
+                System.Console.WriteLine($"result = `{result}`");
 
-                //Expression x = parser.Parse();
-                //System.Console.WriteLine($"Expression = `{x}`");
+                var bool2 = sheets[0].Rows[4].Cells[1];
+                var boolParser = new ExpressionParser(bool2.ExcelFormula, (ExcelFormulaContext)bool2.ExcelFormula.Context, sheets);
 
-                //var o = x.Optimize();
+                Expression bx = boolParser.Parse();
+                System.Console.WriteLine($"Expression = `{bx}`");
 
-                //System.Console.WriteLine($"Expression Optimize = `{o}`");
+                var o2 = bx.Optimize();
 
-                //LambdaExpression le = Expression.Lambda(o);
+                System.Console.WriteLine($"Expression Optimize = `{o2}`");
 
-                //var result = le.Compile().DynamicInvoke();
-
-                //System.Console.WriteLine($"result = `{result}`");
-
-                //var bool2 = sheets[0].Rows[4].Cells[1];
-                //var boolParser = new ExpressionParser(bool2.ExcelFormula, (ExcelFormulaContext)bool2.ExcelFormula.Context, findCellsBySheetAndRange);
-
-                //Expression bx = boolParser.Parse();
-                //System.Console.WriteLine($"Expression = `{bx}`");
-
-                //var o2 = bx.Optimize();
-
-                //System.Console.WriteLine($"Expression Optimize = `{o2}`");
-
-                //var bresult = Expression.Lambda(o2).Compile().DynamicInvoke();
-                //System.Console.WriteLine($"bresult = `{bresult}`");
+                var bresult = Expression.Lambda(o2).Compile().DynamicInvoke();
+                System.Console.WriteLine($"bresult = `{bresult}`");
 
 
                 var sum = sheets[0].Rows[6].Cells[1];
-                var sumParser = new ExpressionParser(sum.ExcelFormula, (ExcelFormulaContext)sum.ExcelFormula.Context, findCellsBySheetAndRange);
+                var sumParser = new ExpressionParser(sum.ExcelFormula, (ExcelFormulaContext)sum.ExcelFormula.Context, sheets);
 
                 Expression sumE = sumParser.Parse();
                 System.Console.WriteLine($"Expression = `{sumE}`");
@@ -146,42 +92,47 @@ namespace ExcelFormulaParser.Expressions.Console
             }
         }
 
-        private static XCell ToXCell(XRow row, ExcelRange r)
+        private static XCell ToXCell(XRow row, ExcelRange range)
         {
-            var c = new XCell(row, r.Address)
+            var cell = new XCell(row, range.Address)
             {
-                FullAddress = $"{r.Worksheet.Name}!{r.Address}"
+                FullAddress = $"{range.Worksheet.Name}!{range.Address}"
             };
 
             var context = new ExcelFormulaContext
             {
-                Sheet = r.Worksheet.Name
+                Sheet = range.Worksheet.Name
             };
 
-            if (!string.IsNullOrEmpty(r.Formula))
+            if (!string.IsNullOrEmpty(range.Formula))
             {
-                c.Formula = "=" + r.Formula;
-                c.ExcelFormula = new ExcelFormula(c.Formula, context);
+                cell.Formula = "=" + range.Formula;
+                cell.ExcelFormula = new ExcelFormula(cell.Formula, context);
             }
             else
             {
-                c.Value = r.Value;
+                cell.Value = range.Value;
 
-                if (r.Value is bool)
+                if (range.Value == null)
                 {
-                    c.ExcelFormula = new ExcelFormula((bool)r.Value ? "=TRUE" : "=FALSE", context);
+                    return cell;
                 }
-                else if (r.Value.IsNumeric())
+
+                if (range.Value is bool)
                 {
-                    c.ExcelFormula = new ExcelFormula("=" + r.Value, context);
+                    cell.ExcelFormula = new ExcelFormula((bool)range.Value ? "=TRUE" : "=FALSE", context);
+                }
+                else if (range.Value.IsNumeric())
+                {
+                    cell.ExcelFormula = new ExcelFormula("=" + range.Value, context);
                 }
                 else
                 {
-                    c.ExcelFormula = new ExcelFormula(string.Format("=\"{0}\"", r.Text), context);
+                    cell.ExcelFormula = new ExcelFormula(string.Format("=\"{0}\"", range.Text), context);
                 }
             }
 
-            return c;
+            return cell;
         }
 
         private static void CalcTest()

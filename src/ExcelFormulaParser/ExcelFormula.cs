@@ -81,21 +81,6 @@ namespace ExcelFormulaParser
             ParseToTokens();
         }
 
-        public static ExcelFormulaToken CreateArgumentToken()
-        {
-            return new ExcelFormulaToken(",", ExcelFormulaTokenType.Argument);
-        }
-
-        public static List<ExcelFormulaToken> WrapInSubExpression(IList<ExcelFormulaToken> tokens)
-        {
-            var list = new List<ExcelFormulaToken>();
-            list.Add(new ExcelFormulaToken(string.Empty, ExcelFormulaTokenType.Subexpression, ExcelFormulaTokenSubtype.Start));
-            list.AddRange(tokens);
-            list.Add(new ExcelFormulaToken(string.Empty, ExcelFormulaTokenType.Subexpression, ExcelFormulaTokenSubtype.Stop));
-
-            return list;
-        }
-
         public int IndexOf(ExcelFormulaToken item)
         {
             return _tokens.IndexOf(item);
