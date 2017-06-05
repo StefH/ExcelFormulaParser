@@ -8,24 +8,12 @@ namespace ExcelFormulaExpressionParser.Expressions
     {
         public static Expression And(IList<Expression> expressions)
         {
-            Expression result = expressions[0];
-            foreach (var expression in expressions.Skip(1))
-            {
-                result = Expression.And(result, expression);
-            }
-
-            return result;
+            return expressions.Aggregate(Expression.And);
         }
 
         public static Expression Or(IList<Expression> expressions)
         {
-            Expression result = expressions[0];
-            foreach (var expression in expressions.Skip(1))
-            {
-                result = Expression.Or(result, expression);
-            }
-
-            return result;
+            return expressions.Aggregate(Expression.Or);
         }
     }
 }

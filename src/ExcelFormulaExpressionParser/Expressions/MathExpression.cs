@@ -6,7 +6,7 @@ using ExcelFormulaExpressionParser.Compatibility;
 
 namespace ExcelFormulaExpressionParser.Expressions
 {
-    public static class MathExpression
+    internal static class MathExpression
     {
         private static readonly Expression Constant0 = Expression.Constant(0d);
         private static readonly Expression Constant10 = Expression.Constant(10d);
@@ -43,13 +43,7 @@ namespace ExcelFormulaExpressionParser.Expressions
 
         public static Expression Sum(IList<Expression> expressions)
         {
-            Expression result = expressions[0];
-            foreach (var expression in expressions.Skip(1))
-            {
-                result = Expression.Add(result, expression);
-            }
-
-            return result;
+            return expressions.Aggregate(Expression.Add);
         }
 
         public static Expression Trunc(IList<Expression> expressions)
