@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace ExcelFormulaExpressionParser
+namespace ExcelFormulaExpressionParser.Expressions
 {
     internal static class LogicalExpression
     {

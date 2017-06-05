@@ -36,13 +36,10 @@ namespace ExcelFormulaExpressionParser.Utils
 
                 start = ExcelUtils.ParseExcelAddress(address);
                 end = ExcelUtils.ParseExcelAddress(address);
-
-                //return new[] {sheet.Rows.SelectMany(r => r.Cells).FirstOrDefault(c => c.Address == address)};
             }
             else
             {
                 string[] partsRange = address.Split(':');
-
 
                 if (!address.Contains('!'))
                 {

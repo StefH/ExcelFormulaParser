@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Compatibility;
 
-namespace ExcelFormulaExpressionParser
+namespace ExcelFormulaExpressionParser.Expressions
 {
     public static class MathExpression
     {
@@ -54,7 +54,7 @@ namespace ExcelFormulaExpressionParser
 
         public static Expression Trunc(IList<Expression> expressions)
         {
-            var truncateMethod = typeof(Math).FindMethod("Truncate", new[] {typeof(double)});
+            var truncateMethod = typeof(Math).FindMethod("Truncate", new[] { typeof(double) });
 
             Expression digits = expressions.Count == 1 ? Constant0 : expressions[1];
             Expression first = Expression.Multiply(expressions[0], Power(Constant10, digits));
