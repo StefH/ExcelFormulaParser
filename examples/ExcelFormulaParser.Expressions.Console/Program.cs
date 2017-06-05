@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser;
+using ExcelFormulaExpressionParser.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Utilities;
 

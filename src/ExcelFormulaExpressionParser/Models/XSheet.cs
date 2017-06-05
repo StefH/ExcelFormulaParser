@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ExcelFormulaExpressionParser
+namespace ExcelFormulaExpressionParser.Models
 {
     public class XSheet
     {

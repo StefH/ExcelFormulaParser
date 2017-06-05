@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Expressions;
+using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaExpressionParser.Utils;
 using ExcelFormulaParser;
 using JetBrains.Annotations;

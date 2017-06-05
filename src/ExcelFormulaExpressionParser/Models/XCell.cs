@@ -1,7 +1,7 @@
 ﻿using ExcelFormulaExpressionParser.Utils;
 using ExcelFormulaParser;
 
-namespace ExcelFormulaExpressionParser
+namespace ExcelFormulaExpressionParser.Models
 {
     public class XCell
     {
