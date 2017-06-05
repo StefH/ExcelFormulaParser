@@ -27,7 +27,7 @@ namespace ExcelFormulaExpressionParser
         /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
         /// <param name="context">The ExcelFormulaContext.</param>
         /// <param name="sheets">The XSheets from a Excel Workbook. (Optional if no real Excel Workbook is parsed.)</param>
-        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] IList<XSheet> sheets = null) :
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] List<XSheet> sheets = null) :
             this(tokens, context, sheets != null ? new CellFinder(sheets) : null)
         {
         }
@@ -234,7 +234,7 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
-        
+
 
         private Expression ParseFunction()
         {
@@ -319,22 +319,11 @@ namespace ExcelFormulaExpressionParser
 
                 if (_finder != null)
                 {
-                    var cells = _finder.Find(_context.Sheet, op.Value); // B1 or 'Sheet1'!B1
-
-                    if (cells.Length == 0)
-                    {
-                        throw new Exception("No cell(s) found.");
-                    }
-
-                    if (cells.Length == 1)
-                    {
-                        var cell = cells[0];
-
-                        return cell.ExcelFormula != null ? Parse(cell.ExcelFormula, _context) : null;
-                    }
-
+                    var cells = _finder.Find(_context.Sheet, op.Value);
                     var expressions = cells.Where(c => c.ExcelFormula != null).Select(c => Parse(c.ExcelFormula, _context));
-                    return Expression.Constant(expressions.ToArray());
+                    var array = expressions.ToArray();
+
+                    return array.Length == 1 ? array[0] : Expression.Constant(array);
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");

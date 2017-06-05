@@ -26,9 +26,8 @@ namespace ExcelFormulaExpressionParser
             XRow = xRow;
             Address = addres;
 
-            var result = ExcelUtils.ParseExcelAddress(addres);
-            Column = result.Column;
-            Row = result.Row;
+            Column = ExcelUtils.GetExcelColumnNumber(addres);
+            Row = xRow.Row;
         }
     }
 }

@@ -17,6 +17,13 @@ namespace ExcelFormulaExpressionParser.Utils
             };
         }
 
+        public static int GetExcelColumnNumber(string value)
+        {
+            int startIndex = value.IndexOfAny(Numbers);
+
+            return ExcelColumnNameToNumber(value.Substring(0, startIndex));
+        }
+
         private static int ExcelColumnNameToNumber(string columnName)
         {
             int sum = 0;

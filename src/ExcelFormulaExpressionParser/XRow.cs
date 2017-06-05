@@ -5,11 +5,15 @@ namespace ExcelFormulaExpressionParser
     public class XRow
     {
         private XSheet Sheet { get; }
-        public IList<XCell> Cells { get; set; }
 
-        public XRow(XSheet sheet)
+        public int Row { get; }
+
+        public List<XCell> Cells { get; set; }
+
+        public XRow(XSheet sheet, int row)
         {
             Sheet = sheet;
+            Row = row;
             Cells = new List<XCell>();
         }
 

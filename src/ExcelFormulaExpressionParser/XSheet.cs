@@ -7,7 +7,7 @@ namespace ExcelFormulaExpressionParser
     {
         public string Name { get; } 
 
-        public IList<XRow> Rows { get; set; }
+        public List<XRow> Rows { get; set; }
 
         public XSheet(string name)
         {

@@ -33,7 +33,7 @@ namespace ExcelFormulaParser.Expressions.Console
 
                     for (int r = startCell.Row; r <= endCell.Row; r++)
                     {
-                        var xrow = new XRow(sheet);
+                        var xrow = new XRow(sheet, r);
                         for (int c = startCell.Column; c <= endCell.Column; c++)
                         {
                             xrow.Cells.Add(ToXCell(xrow, worksheet.Cells[r, c]));
