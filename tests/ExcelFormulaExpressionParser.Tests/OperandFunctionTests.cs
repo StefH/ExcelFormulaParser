@@ -62,5 +62,19 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assert
             Check.That(result).IsEqualTo(true);
         }
+
+        [Fact]
+        public void OperandFunction_Year()
+        {
+            // Assign
+            var formula = new ExcelFormula("=OR(TRUE, TRUE, FALSE)");
+
+            // Act
+            Expression expression = new ExpressionParser(formula).Parse();
+            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+
+            // Assert
+            Check.That(result).IsEqualTo(true);
+        }
     }
 }

@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser;
+using ExcelFormulaExpressionParser.Helpers;
 using ExcelFormulaExpressionParser.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Utilities;
@@ -103,6 +105,26 @@ namespace ExcelFormulaParser.Expressions.Console
                 var sumSqrtresult = Expression.Lambda(sumSqrtEOpt).Compile().DynamicInvoke();
                 System.Console.WriteLine($"sumresult = `{sumSqrtresult}`");
 
+
+                var dateyear = sheets[0].Rows[7].Cells[2];
+                var dateyearParser = new ExpressionParser(dateyear.ExcelFormula, (ExcelFormulaContext)dateyear.ExcelFormula.Context, sheets);
+
+                Expression dateyearE = dateyearParser.Parse();
+                //System.Console.WriteLine($"Expression = `{sumSqrtE}`");
+
+                var dateyearO = dateyearE.Optimize();
+
+                //System.Console.WriteLine($"Expression Optimize = `{sumSqrtEOpt}`");
+
+                var dateyearResult = Expression.Lambda(dateyearO).Compile().DynamicInvoke();
+                System.Console.WriteLine($"dateyearResult = `{dateyearResult}`");
+
+                var dateyearnow = sheets[0].Rows[8].Cells[2];
+                var dateyearnowParser = new ExpressionParser(dateyearnow.ExcelFormula, (ExcelFormulaContext)dateyearnow.ExcelFormula.Context, sheets);
+
+                var dateyearnowResult = Expression.Lambda(dateyearnowParser.Parse()).Compile().DynamicInvoke();
+                System.Console.WriteLine($"dateyearnowResult = `{dateyearnowResult}`");
+
                 int u = 0;
             }
         }
@@ -136,6 +158,11 @@ namespace ExcelFormulaParser.Expressions.Console
                 if (range.Value is bool)
                 {
                     cell.ExcelFormula = new ExcelFormula((bool)range.Value ? "=TRUE" : "=FALSE", context);
+                }
+                else if (range.Value is DateTime)
+                {
+                    double value = DateTimeHelpers.ToOADate((DateTime) range.Value);
+                    cell.ExcelFormula = new ExcelFormula("=" + value, context);
                 }
                 else if (range.Value.IsNumeric())
                 {

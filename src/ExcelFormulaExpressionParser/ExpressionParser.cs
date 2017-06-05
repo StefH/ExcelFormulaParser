@@ -285,7 +285,10 @@ namespace ExcelFormulaExpressionParser
                         Next();
                     }
 
-                    AddToArgumentsList(arguments, Parse(tokens, _context));
+                    if (tokens.Any())
+                    {
+                        AddToArgumentsList(arguments, Parse(tokens, _context));
+                    }
 
                     Next();
 
@@ -295,6 +298,8 @@ namespace ExcelFormulaExpressionParser
                         case "AND": return LogicalExpression.And(arguments);
                         case "COS": return MathExpression.Cos(arguments[0]);
                         case "IF": return Expression.Condition(arguments[0], arguments[1], arguments[2]);
+                        case "MONTH": return DateExpression.Month(arguments[0]);
+                        case "NOW": return DateExpression.Now();
                         case "OR": return LogicalExpression.Or(arguments);
                         case "POWER": return MathExpression.Power(arguments[0], arguments[1]);
                         case "ROUND": return MathExpression.Round(arguments[0], arguments[1]);
@@ -302,6 +307,7 @@ namespace ExcelFormulaExpressionParser
                         case "SQRT": return MathExpression.Sqrt(arguments[0]);
                         case "SUM": return MathExpression.Sum(arguments);
                         case "TRUNC": return MathExpression.Trunc(arguments);
+                        case "YEAR": return DateExpression.Year(arguments[0]);
 
                         default:
                             throw new NotImplementedException(functionName);
