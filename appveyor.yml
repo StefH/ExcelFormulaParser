@@ -46,6 +46,6 @@ test_script:
   - pip install codecov
 
   - cmd: '"OpenCover\tools\OpenCover.Console.exe" -register:user -target:dotnet.exe -targetargs:"test tests\ExcelFormulaParser.Tests\ExcelFormulaParser.Tests.csproj --no-build" -returntargetcode -filter:"+[ExcelFormulaParser]* -[ExcelFormulaParser.Tests*]*" -mergeoutput -output:coverage.xml -oldstyle -searchdirs:".\tests\ExcelFormulaParser.Tests\bin\%CONFIGURATION%\net452"'
-  - cmd: '"OpenCover\tools\OpenCover.Console.exe" -register:user -target:dotnet.exe -targetargs:"test tests\ExcelFormulaExpresionParser.Tests\ExcelFormulaParser.Tests.csproj --no-build" -returntargetcode -filter:"+[ExcelFormulaExpresionParser]* -[ExcelFormulaExpresionParser.Tests*]*" -mergeoutput -output:coverage.xml -oldstyle -searchdirs:".\tests\ExcelFormulaExpresionParser.Tests\bin\%CONFIGURATION%\net452"'
+  - cmd: '"OpenCover\tools\OpenCover.Console.exe" -register:user -target:dotnet.exe -targetargs:"test tests\ExcelFormulaExpresionParser.Tests\ExcelFormulaExpressionParser.Tests.csproj --no-build" -returntargetcode -filter:"+[ExcelFormulaExpressionParser]* -[ExcelFormulaExpressionParser.Tests*]*" -mergeoutput -output:coverage.xml -oldstyle -searchdirs:".\tests\ExcelFormulaExpressionParser.Tests\bin\%CONFIGURATION%\net452"'
   - codecov -f "coverage.xml"
   - coveralls.net\tools\csmacnz.Coveralls.exe --opencover -i .\coverage.xml
