@@ -4,7 +4,7 @@ using ExcelFormulaExpressionParser.Models;
 
 namespace ExcelFormulaExpressionParser.Utils
 {
-    internal class CellFinder
+    internal class CellFinder : ICellFinder
     {
         private readonly List<XSheet> _sheets;
 

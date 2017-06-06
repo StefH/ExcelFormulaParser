@@ -21,22 +21,37 @@ namespace ExcelFormulaExpressionParser
 
         private readonly IList<ExcelFormulaToken> _list;
         private readonly ExcelFormulaContext _context;
-        private readonly CellFinder _finder;
+        private readonly ICellFinder _finder;
 
         /// <summary>
         /// ExpressionParser
         /// </summary>
         /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
-        /// <param name="context">The ExcelFormulaContext.</param>
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens) :
+            this(tokens, null, (ICellFinder) null)
+        {
+        }
+
+        /// <summary>
+        /// ExpressionParser
+        /// </summary>
+        /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
+        /// <param name="context">The ExcelFormulaContext. (Optional if no real Excel Workbook is parsed.)</param>
         /// <param name="sheets">The XSheets from a Excel Workbook. (Optional if no real Excel Workbook is parsed.)</param>
         public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] List<XSheet> sheets = null) :
             this(tokens, context, sheets != null ? new CellFinder(sheets) : null)
         {
         }
 
-        private ExpressionParser([NotNull] IList<ExcelFormulaToken> list, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] CellFinder finder = null)
+        /// <summary>
+        /// ExpressionParser
+        /// </summary>
+        /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
+        /// <param name="context">The ExcelFormulaContext. (Optional if no real Excel Workbook is parsed.)</param>
+        /// <param name="finder">The cellfinder to finds cells in a workbook. (Optional if no real Excel Workbook is parsed.)</param>
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] ICellFinder finder = null)
         {
-            _list = list;
+            _list = tokens;
             _context = context;
             _finder = finder;
         }
@@ -307,6 +322,7 @@ namespace ExcelFormulaExpressionParser
                         case "SQRT": return MathExpression.Sqrt(arguments[0]);
                         case "SUM": return MathExpression.Sum(arguments);
                         case "TRUNC": return MathExpression.Trunc(arguments);
+                        case "VLOOKUP": return LookupAndReferenceExpression.VLookup(arguments[0], arguments.GetRange(1, arguments.Count - 2), arguments.Last());
                         case "YEAR": return DateExpression.Year(arguments[0]);
 
                         default:
