@@ -28,7 +28,7 @@ namespace ExcelFormulaExpressionParser
         /// </summary>
         /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
         public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens) :
-            this(tokens, null, (ICellFinder) null)
+            this(tokens, null, (ICellFinder)null)
         {
         }
 
@@ -251,8 +251,6 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
-
-
         private Expression ParseFunction()
         {
             Expression left = ParseRange();
@@ -264,12 +262,12 @@ namespace ExcelFormulaExpressionParser
                     void AddToArgumentsList(List<Expression> args, Expression expression)
                     {
                         var constantExpression = expression as ConstantExpression;
-                        if (constantExpression != null && constantExpression.Type == typeof(Expression[]))
+                        if (constantExpression != null && constantExpression.Type == typeof(XRange))
                         {
-                            var array = constantExpression.Value as Expression[];
-                            if (array != null)
+                            var xrange = constantExpression.Value as XRange;
+                            if (xrange != null)
                             {
-                                args.AddRange(array);
+                                args.AddRange(xrange.Expressions);
                             }
                         }
                         else
@@ -347,7 +345,12 @@ namespace ExcelFormulaExpressionParser
                     var expressions = cells.Where(c => c.ExcelFormula != null).Select(c => Parse(c.ExcelFormula, _context));
                     var array = expressions.ToArray();
 
-                    return array.Length == 1 ? array[0] : Expression.Constant(array);
+                    return array.Length == 1 ? array[0] : Expression.Constant(new XRange
+                    {
+                        Expressions = array,
+                        Sheet = _context.Sheet,
+                        Range = op.Value
+                    });
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");
