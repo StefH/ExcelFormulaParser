@@ -259,16 +259,12 @@ namespace ExcelFormulaExpressionParser
             {
                 if (CT.Subtype == TokenSubtype.Start)
                 {
-                    void AddToArgumentsList(List<Expression> args, Expression expression)
+                    void AddToArgumentsList(List<object> args, Expression expression)
                     {
                         var constantExpression = expression as ConstantExpression;
                         if (constantExpression != null && constantExpression.Type == typeof(XRange))
                         {
-                            var xrange = constantExpression.Value as XRange;
-                            if (xrange != null)
-                            {
-                                args.AddRange(xrange.Expressions);
-                            }
+                            args.Add(constantExpression.Value);
                         }
                         else
                         {
@@ -278,7 +274,7 @@ namespace ExcelFormulaExpressionParser
 
                     string functionName = CT.Value;
 
-                    var arguments = new List<Expression>();
+                    var arguments = new List<object>();
                     var tokens = new List<ExcelFormulaToken>();
 
                     Next();
@@ -305,23 +301,26 @@ namespace ExcelFormulaExpressionParser
 
                     Next();
 
+                    var expressions = arguments.Where(a => a is Expression).Cast<Expression>().ToArray();
+                    var xranges = arguments.Where(a => a is XRange).Cast<XRange>().ToArray();
+
                     switch (functionName)
                     {
-                        case "ABS": return MathExpression.Abs(arguments[0]);
-                        case "AND": return LogicalExpression.And(arguments);
-                        case "COS": return MathExpression.Cos(arguments[0]);
-                        case "IF": return Expression.Condition(arguments[0], arguments[1], arguments[2]);
-                        case "MONTH": return DateExpression.Month(arguments[0]);
+                        case "ABS": return MathExpression.Abs(expressions[0]);
+                        case "AND": return LogicalExpression.And(expressions);
+                        case "COS": return MathExpression.Cos(expressions[0]);
+                        case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
+                        case "MONTH": return DateExpression.Month(expressions[0]);
                         case "NOW": return DateExpression.Now();
-                        case "OR": return LogicalExpression.Or(arguments);
-                        case "POWER": return MathExpression.Power(arguments[0], arguments[1]);
-                        case "ROUND": return MathExpression.Round(arguments[0], arguments[1]);
-                        case "SIN": return MathExpression.Sin(arguments[0]);
-                        case "SQRT": return MathExpression.Sqrt(arguments[0]);
-                        case "SUM": return MathExpression.Sum(arguments);
-                        case "TRUNC": return MathExpression.Trunc(arguments);
-                        case "VLOOKUP": return LookupAndReferenceExpression.VLookup(arguments[0], arguments.GetRange(1, arguments.Count - 2), arguments.Last());
-                        case "YEAR": return DateExpression.Year(arguments[0]);
+                        case "OR": return LogicalExpression.Or(expressions);
+                        case "POWER": return MathExpression.Power(expressions[0], expressions[1]);
+                        case "ROUND": return MathExpression.Round(expressions[0], expressions[1]);
+                        case "SIN": return MathExpression.Sin(expressions[0]);
+                        case "SQRT": return MathExpression.Sqrt(expressions[0]);
+                        case "SUM": return MathExpression.Sum(expressions, xranges);
+                        case "TRUNC": return MathExpression.Trunc(expressions);
+                        case "VLOOKUP": return LookupAndReferenceExpression.VLookup(expressions[0], xranges[0], expressions[1]);
+                        case "YEAR": return DateExpression.Year(expressions[0]);
 
                         default:
                             throw new NotImplementedException(functionName);
@@ -341,16 +340,10 @@ namespace ExcelFormulaExpressionParser
 
                 if (_finder != null)
                 {
-                    var cells = _finder.Find(_context.Sheet, op.Value);
-                    var expressions = cells.Where(c => c.ExcelFormula != null).Select(c => Parse(c.ExcelFormula, _context));
-                    var array = expressions.ToArray();
+                    var xrange = _finder.Find(_context.Sheet, op.Value);
+                    var expressions = xrange.Cells.Select(c => c.ExcelFormula != null ? Parse(c.ExcelFormula, _context) : null).ToArray();
 
-                    return array.Length == 1 ? array[0] : Expression.Constant(new XRange
-                    {
-                        Expressions = array,
-                        Sheet = _context.Sheet,
-                        Range = op.Value
-                    });
+                    return expressions.Length == 1 ? expressions[0] : Expression.Constant(xrange);
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");

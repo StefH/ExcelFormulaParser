@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Compatibility;
+using ExcelFormulaExpressionParser.Models;
 
 namespace ExcelFormulaExpressionParser.Expressions
 {
@@ -41,9 +42,21 @@ namespace ExcelFormulaExpressionParser.Expressions
             return Expression.Call(null, typeof(Math).FindMethod("Sqrt", new[] { typeof(double) }), value);
         }
 
-        public static Expression Sum(IList<Expression> expressions)
+        public static Expression Sum(IList<Expression> expressions, IList<XRange> ranges)
         {
-            return expressions.Aggregate(Expression.Add);
+            Expression left = Constant0;
+            Expression right = Constant0;
+            if (expressions.Any())
+            {
+                left = expressions.Aggregate(Expression.Add);
+            }
+
+            if (ranges.Any())
+            {
+                right = ranges.SelectMany(r => r.Expressions).Aggregate(Expression.Add);
+            }
+
+            return Expression.Add(left, right);
         }
 
         public static Expression Trunc(IList<Expression> expressions)
@@ -57,7 +70,7 @@ namespace ExcelFormulaExpressionParser.Expressions
             return Expression.Divide(truncate, Power(Constant10, digits));
         }
 
-        private static Expression ToInt(Expression value)
+        public static Expression ToInt(Expression value)
         {
             return Expression.Convert(value, typeof(int));
         }

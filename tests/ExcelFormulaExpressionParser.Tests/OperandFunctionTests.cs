@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaParser;
@@ -80,6 +81,20 @@ namespace ExcelFormulaExpressionParser.Tests
         }
 
         [Fact]
+        public void OperandFunction_Sum()
+        {
+            // Assign
+            var formula = new ExcelFormula("=SUM(1,2,3)");
+
+            // Act
+            Expression expression = new ExpressionParser(formula).Parse();
+            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+
+            // Assert
+            Check.That(result).IsEqualTo(6);
+        }
+
+        [Fact]
         public void OperandFunction_Year()
         {
             // Assign
@@ -105,16 +120,27 @@ namespace ExcelFormulaExpressionParser.Tests
             var row2 = new XRow(sheet, 2);
             cells.Add(new XCell(row2, "A2") { ExcelFormula = new ExcelFormula("=2") });
             cells.Add(new XCell(row2, "B2") { ExcelFormula = new ExcelFormula("=20") });
+            var row3 = new XRow(sheet, 3);
+            cells.Add(new XCell(row3, "A3") { ExcelFormula = new ExcelFormula("=3") });
+            cells.Add(new XCell(row3, "B3") { ExcelFormula = null });
 
-            _finder.Setup(f => f.Find(It.IsAny<string>(), It.IsAny<string>())).Returns(cells);
-            var formula = new ExcelFormula("=VLOOKUP(1.5, A1:B2, 2)");
+            var xrange = new XRange
+            {
+                Cells = cells.ToArray(),
+                Address = "A1:B3",
+                Sheet = sheet,
+                Expressions = cells.Where(c => c.ExcelFormula != null).Select(c => new ExpressionParser(c.ExcelFormula, _context, _finder.Object).Parse()).ToArray()
+            };
+
+            _finder.Setup(f => f.Find(It.IsAny<string>(), "A1:B3")).Returns(xrange);
+            var formula = new ExcelFormula("=VLOOKUP(1.1, A1:B3, 2)");
 
             // Act
             Expression expression = new ExpressionParser(formula, _context, _finder.Object).Parse();
-            //var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
 
             // Assert
-            //Check.That(result).IsEqualTo(true);
+            //Check.That(result).IsEqualTo(20.0);
         }
     }
 }

@@ -2,11 +2,17 @@
 
 namespace ExcelFormulaExpressionParser.Models
 {
-    internal class XRange
+    public class XRange
     {
-        public string Sheet { get; set; }
+        public XSheet Sheet { get; set; }
 
-        public string Range { get; set; }
+        public string Address { get; set; }
+
+        public CellAddress Start { get; set; }
+
+        public CellAddress End { get; set; }
+
+        public XCell[] Cells { get; set; }
 
         public Expression[] Expressions { get; set; }
     }
