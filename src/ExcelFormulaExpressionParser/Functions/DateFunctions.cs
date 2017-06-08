@@ -2,9 +2,9 @@
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Helpers;
 
-namespace ExcelFormulaExpressionParser.Expressions
+namespace ExcelFormulaExpressionParser.Functions
 {
-    internal static class DateExpression
+    internal static class DateFunctions
     {
         public static Expression Month(Expression expression)
         {

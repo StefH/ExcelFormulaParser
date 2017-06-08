@@ -31,8 +31,4 @@
     <ProjectReference Include="..\ExcelFormulaParser\ExcelFormulaParser.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Extensions\" />
-  </ItemGroup>
-
 </Project>

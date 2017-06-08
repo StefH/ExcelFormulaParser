@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
+using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaParser;
 using Moq;
@@ -32,7 +32,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<bool>();
 
             // Assert
             Check.That(result).IsEqualTo(false);
@@ -46,7 +46,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<double>();
 
             // Assert
             Check.That(result).IsEqualTo(-1);
@@ -60,7 +60,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<double>();
 
             // Assert
             Check.That(result).IsEqualTo(42);
@@ -88,24 +88,10 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<double>();
 
             // Assert
             Check.That(result).IsEqualTo(6);
-        }
-
-        [Fact]
-        public void OperandFunction_Year()
-        {
-            // Assign
-            var formula = new ExcelFormula("=OR(TRUE, TRUE, FALSE)");
-
-            // Act
-            Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
-
-            // Assert
-            Check.That(result).IsEqualTo(true);
         }
 
         [Fact]
@@ -129,15 +115,15 @@ namespace ExcelFormulaExpressionParser.Tests
                 Cells = cells.ToArray(),
                 Address = "A1:B3",
                 Sheet = sheet,
-                Expressions = cells.Where(c => c.ExcelFormula != null).Select(c => new ExpressionParser(c.ExcelFormula, _context, _finder.Object).Parse()).ToArray()
+                // Expressions = cells.Where(c => c.ExcelFormula != null).Select(c => new ExpressionParser(c.ExcelFormula, _context, _finder.Object).Parse()).ToArray()
             };
 
             _finder.Setup(f => f.Find(It.IsAny<string>(), "A1:B3")).Returns(xrange);
             var formula = new ExcelFormula("=VLOOKUP(1.1, A1:B3, 2)");
 
             // Act
-            Expression expression = new ExpressionParser(formula, _context, _finder.Object).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            //Expression expression = new ExpressionParser(formula, _context, _finder.Object).Parse();
+            //var result = Expression.Lambda(expression).Compile().DynamicInvoke();
 
             // Assert
             //Check.That(result).IsEqualTo(20.0);

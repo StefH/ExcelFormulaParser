@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using ExcelFormulaExpressionParser.Expressions;
+using ExcelFormulaExpressionParser.Functions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaExpressionParser.Utils;
 using ExcelFormulaParser;
@@ -112,7 +112,7 @@ namespace ExcelFormulaExpressionParser
                     switch (op.Value)
                     {
                         case "^":
-                            left = MathExpression.Power(left, right);
+                            left = MathFunctions.Power(left, right);
                             break;
                         case "*":
                             left = Expression.Multiply(left, right);
@@ -306,21 +306,21 @@ namespace ExcelFormulaExpressionParser
 
                     switch (functionName)
                     {
-                        case "ABS": return MathExpression.Abs(expressions[0]);
-                        case "AND": return LogicalExpression.And(expressions);
-                        case "COS": return MathExpression.Cos(expressions[0]);
+                        case "ABS": return MathFunctions.Abs(expressions[0]);
+                        case "AND": return LogicalFunctions.And(expressions);
+                        case "COS": return MathFunctions.Cos(expressions[0]);
                         case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
-                        case "MONTH": return DateExpression.Month(expressions[0]);
-                        case "NOW": return DateExpression.Now();
-                        case "OR": return LogicalExpression.Or(expressions);
-                        case "POWER": return MathExpression.Power(expressions[0], expressions[1]);
-                        case "ROUND": return MathExpression.Round(expressions[0], expressions[1]);
-                        case "SIN": return MathExpression.Sin(expressions[0]);
-                        case "SQRT": return MathExpression.Sqrt(expressions[0]);
-                        case "SUM": return MathExpression.Sum(expressions, xranges);
-                        case "TRUNC": return MathExpression.Trunc(expressions);
-                        case "VLOOKUP": return LookupAndReferenceExpression.VLookup(expressions[0], xranges[0], expressions[1]);
-                        case "YEAR": return DateExpression.Year(expressions[0]);
+                        case "MONTH": return DateFunctions.Month(expressions[0]);
+                        case "NOW": return DateFunctions.Now();
+                        case "OR": return LogicalFunctions.Or(expressions);
+                        case "POWER": return MathFunctions.Power(expressions[0], expressions[1]);
+                        case "ROUND": return MathFunctions.Round(expressions[0], expressions[1]);
+                        case "SIN": return MathFunctions.Sin(expressions[0]);
+                        case "SQRT": return MathFunctions.Sqrt(expressions[0]);
+                        case "SUM": return MathFunctions.Sum(expressions, xranges);
+                        case "TRUNC": return MathFunctions.Trunc(expressions);
+                        case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1]);
+                        case "YEAR": return DateFunctions.Year(expressions[0]);
 
                         default:
                             throw new NotImplementedException(functionName);
@@ -341,9 +341,12 @@ namespace ExcelFormulaExpressionParser
                 if (_finder != null)
                 {
                     var xrange = _finder.Find(_context.Sheet, op.Value);
-                    var expressions = xrange.Cells.Select(c => c.ExcelFormula != null ? Parse(c.ExcelFormula, _context) : null).ToArray();
+                    foreach (var cell in xrange.Cells)
+                    {
+                        cell.Expression = Parse(cell.ExcelFormula, _context);
+                    }
 
-                    return expressions.Length == 1 ? expressions[0] : Expression.Constant(xrange);
+                    return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : Expression.Constant(xrange);
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");

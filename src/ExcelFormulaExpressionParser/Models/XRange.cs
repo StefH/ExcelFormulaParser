@@ -13,7 +13,5 @@ namespace ExcelFormulaExpressionParser.Models
         public CellAddress End { get; set; }
 
         public XCell[] Cells { get; set; }
-
-        public Expression[] Expressions { get; set; }
     }
 }

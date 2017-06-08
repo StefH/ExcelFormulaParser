@@ -1,4 +1,5 @@
-﻿using ExcelFormulaExpressionParser.Utils;
+﻿using System.Linq.Expressions;
+using ExcelFormulaExpressionParser.Utils;
 using ExcelFormulaParser;
 
 namespace ExcelFormulaExpressionParser.Models
@@ -18,6 +19,8 @@ namespace ExcelFormulaExpressionParser.Models
         public string Formula { get; set; }
 
         public ExcelFormula ExcelFormula { get; set; }
+
+        public Expression Expression { get; set; }
 
         public XRow XRow { get; }
 

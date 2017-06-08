@@ -5,9 +5,9 @@ using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Compatibility;
 using ExcelFormulaExpressionParser.Models;
 
-namespace ExcelFormulaExpressionParser.Expressions
+namespace ExcelFormulaExpressionParser.Functions
 {
-    internal static class MathExpression
+    internal static class MathFunctions
     {
         private static readonly Expression Constant0 = Expression.Constant(0d);
         private static readonly Expression Constant10 = Expression.Constant(10d);
@@ -46,6 +46,7 @@ namespace ExcelFormulaExpressionParser.Expressions
         {
             Expression left = Constant0;
             Expression right = Constant0;
+
             if (expressions.Any())
             {
                 left = expressions.Aggregate(Expression.Add);
@@ -53,7 +54,7 @@ namespace ExcelFormulaExpressionParser.Expressions
 
             if (ranges.Any())
             {
-                right = ranges.SelectMany(r => r.Expressions).Aggregate(Expression.Add);
+                right = ranges.SelectMany(r => r.Cells).Select(c => c.Expression).Aggregate(Expression.Add);
             }
 
             return Expression.Add(left, right);

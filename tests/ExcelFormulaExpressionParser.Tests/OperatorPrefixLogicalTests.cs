@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaParser;
 using NFluent;
 using Xunit;
@@ -15,7 +16,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<bool>();
 
             // Assert
             Check.That(result).IsEqualTo(false);
@@ -29,8 +30,8 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
-            
+            var result = expression.LambdaInvoke<bool>();
+
             // Assert
             Check.That(result).IsEqualTo(false);
         }
@@ -43,7 +44,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<bool>();
 
             // Assert
             Check.That(result).IsEqualTo(true);
@@ -57,7 +58,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<bool>();
 
             // Assert
             Check.That(result).IsEqualTo(true);
@@ -71,7 +72,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<bool>();
 
             // Assert
             Check.That(result).IsEqualTo(true);
@@ -85,7 +86,7 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
-            var result = Expression.Lambda(expression).Compile().DynamicInvoke();
+            var result = expression.LambdaInvoke<bool>();
 
             // Assert
             Check.That(result).IsEqualTo(true);
