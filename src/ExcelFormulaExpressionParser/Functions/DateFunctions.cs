@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Linq.Expressions;
+using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaExpressionParser.Helpers;
 
 namespace ExcelFormulaExpressionParser.Functions
 {
     internal static class DateFunctions
     {
+        public static Expression Day(Expression expression)
+        {
+            return Expression.Constant((double)Invoke(expression).Day);
+        }
+
         public static Expression Month(Expression expression)
         {
-            return Expression.Constant(Compile(expression).Month);
+            return Expression.Constant((double) Invoke(expression).Month);
         }
 
         public static Expression Now()
@@ -18,12 +24,12 @@ namespace ExcelFormulaExpressionParser.Functions
 
         public static Expression Year(Expression expression)
         {
-            return Expression.Constant(Compile(expression).Year);
+            return Expression.Constant((double) Invoke(expression).Year);
         }
 
-        private static DateTime Compile(Expression expression)
+        private static DateTime Invoke(Expression expression)
         {
-            double value = (double) Expression.Lambda(expression).Compile().DynamicInvoke();
+            double value = expression.LambdaInvoke<double>();
 
             return DateTimeHelpers.FromOADate(value);
         }

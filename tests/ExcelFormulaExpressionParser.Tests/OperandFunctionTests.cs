@@ -101,7 +101,7 @@ namespace ExcelFormulaExpressionParser.Tests
             var range = CreateXRange();
 
             _finder.Setup(f => f.Find(It.IsAny<string>(), "A10:B12")).Returns(range);
-            var formula = new ExcelFormula("=VLOOKUP(1.1, A10:B12, 2)");
+            var formula = new ExcelFormula("=VLOOKUP(2.1, A10:B12, 2)");
 
             // Act
             Expression expression = new ExpressionParser(formula, _context, _finder.Object).Parse();

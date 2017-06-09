@@ -43,7 +43,7 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.1), _range, Expression.Constant(2));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(2.1), _range, Expression.Constant(2));
             var result = resultExpression.LambdaInvoke<double>();
 
             // Assert

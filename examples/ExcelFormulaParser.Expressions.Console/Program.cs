@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser;
+using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaExpressionParser.Helpers;
 using ExcelFormulaExpressionParser.Models;
 using OfficeOpenXml;
@@ -122,8 +123,17 @@ namespace ExcelFormulaParser.Expressions.Console
                 var dateyearnow = sheets[0].Rows[8].Cells[2];
                 var dateyearnowParser = new ExpressionParser(dateyearnow.ExcelFormula, (ExcelFormulaContext)dateyearnow.ExcelFormula.Context, sheets);
 
-                var dateyearnowResult = Expression.Lambda(dateyearnowParser.Parse()).Compile().DynamicInvoke();
+                var dateyearnowResult = dateyearnowParser.Parse().LambdaInvoke<double>();
                 System.Console.WriteLine($"dateyearnowResult = `{dateyearnowResult}`");
+
+
+                var vlookup = sheets[3].Rows[0].Cells[4];
+                var vlookupParser = new ExpressionParser(vlookup.ExcelFormula, (ExcelFormulaContext)vlookup.ExcelFormula.Context, sheets);
+
+                Expression vlookupE = vlookupParser.Parse();
+
+                var vlookupResult = vlookupE.LambdaInvoke<double>();
+                System.Console.WriteLine($"vlookupResult = `{vlookupResult}`");
 
                 int u = 0;
             }

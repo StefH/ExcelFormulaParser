@@ -25,7 +25,11 @@ namespace ExcelFormulaExpressionParser.Functions
                     {
                         int columnIndex = MathFunctions.ToInt(column).LambdaInvoke<int>();
 
-                        return range.Cells.First(c => c.Row == row && c.Column == range.Start.Column + columnIndex - 1).Expression;
+                        // return (previous) match
+                        int matchRow = exactMatch ? row : row - 1;
+                        var cell = range.Cells.FirstOrDefault(c => c.Row == matchRow && c.Column == range.Start.Column + columnIndex - 1);
+
+                        return cell != null ? cell.Expression : Errors.NA;
                     }
                 }
             }
