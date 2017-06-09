@@ -41,7 +41,7 @@ namespace ExcelFormulaExpressionParser.Helpers
         /// <summary>
         /// Converts the DateTime instance into an OLE Automation compatible
         /// </summary>
-        public static double ToOADate(this DateTime dateTime)
+        public static double ToOADate(DateTime dateTime)
         {
             return TicksToOADate(dateTime.Ticks);
         }

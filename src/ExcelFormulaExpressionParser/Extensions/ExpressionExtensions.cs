@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Linq.Expressions;
 
 namespace ExcelFormulaExpressionParser.Extensions
 {
@@ -6,7 +7,18 @@ namespace ExcelFormulaExpressionParser.Extensions
     {
         public static T LambdaInvoke<T>(this Expression expression)
         {
-            return (T)Expression.Lambda(expression).Compile().DynamicInvoke();
+            var value = Expression.Lambda(expression).Compile().DynamicInvoke();
+            if (value == null)
+            {
+                return default(T);
+            }
+
+            if (value is T)
+            {
+                return (T)value;
+            }
+
+            return (T)Convert.ChangeType(value, typeof(T));
         }
     }
 }

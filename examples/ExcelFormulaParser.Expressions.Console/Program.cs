@@ -129,11 +129,13 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 var vlookup = sheets[3].Rows[0].Cells[4];
                 var vlookupParser = new ExpressionParser(vlookup.ExcelFormula, (ExcelFormulaContext)vlookup.ExcelFormula.Context, sheets);
-
-                Expression vlookupE = vlookupParser.Parse();
-
-                var vlookupResult = vlookupE.LambdaInvoke<double>();
+                var vlookupResult = vlookupParser.Parse().LambdaInvoke<double>();
                 System.Console.WriteLine($"vlookupResult = `{vlookupResult}`");
+
+                var vlookup2 = sheets[3].Rows[1].Cells[4];
+                var vlookupParser2 = new ExpressionParser(vlookup2.ExcelFormula, (ExcelFormulaContext)vlookup2.ExcelFormula.Context, sheets);
+                var vlookupResult2 = vlookupParser2.Parse().LambdaInvoke<double>();
+                System.Console.WriteLine($"vlookupResult2 = `{vlookupResult2}`");
 
                 int u = 0;
             }

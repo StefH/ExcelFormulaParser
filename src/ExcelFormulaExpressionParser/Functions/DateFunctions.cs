@@ -7,6 +7,16 @@ namespace ExcelFormulaExpressionParser.Functions
 {
     internal static class DateFunctions
     {
+        public static Expression Date(Expression yearExpression, Expression monthExpression, Expression dayExpression)
+        {
+            int year = yearExpression.LambdaInvoke<int>();
+            int month = monthExpression.LambdaInvoke<int>();
+            int day = dayExpression.LambdaInvoke<int>();
+
+            var date = new DateTime(year, month, day);
+            return Expression.Constant(DateTimeHelpers.ToOADate(date));
+        }
+
         public static Expression Day(Expression expression)
         {
             return Expression.Constant((double)Invoke(expression).Day);
