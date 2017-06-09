@@ -319,7 +319,7 @@ namespace ExcelFormulaExpressionParser
                         case "SQRT": return MathFunctions.Sqrt(expressions[0]);
                         case "SUM": return MathFunctions.Sum(expressions, xranges);
                         case "TRUNC": return MathFunctions.Trunc(expressions);
-                        case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1]);
+                        case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
                         case "YEAR": return DateFunctions.Year(expressions[0]);
 
                         default:
@@ -357,6 +357,11 @@ namespace ExcelFormulaExpressionParser
 
         private Expression Parse(IList<ExcelFormulaToken> tokens, ExcelFormulaContext context)
         {
+            if (tokens == null)
+            {
+                return null;
+            }
+
             return new ExpressionParser(tokens, context, _finder).Parse();
         }
     }

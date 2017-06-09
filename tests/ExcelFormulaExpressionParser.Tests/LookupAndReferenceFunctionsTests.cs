@@ -4,7 +4,6 @@ using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaExpressionParser.Functions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaParser;
-using Moq;
 using NFluent;
 using Xunit;
 
@@ -12,8 +11,7 @@ namespace ExcelFormulaExpressionParser.Tests
 {
     public class LookupAndReferenceFunctionsTests
     {
-        private readonly XRange xrange;
-        private readonly Mock<ICellFinder> _finder;
+        private readonly XRange _range;
 
         public LookupAndReferenceFunctionsTests()
         {
@@ -29,7 +27,7 @@ namespace ExcelFormulaExpressionParser.Tests
             cells.Add(new XCell(row3, "A12") { ExcelFormula = new ExcelFormula("=3"), Expression = Expression.Constant(3.0) });
             cells.Add(new XCell(row3, "B12") { ExcelFormula = null, Expression = null });
 
-            xrange = new XRange
+            _range = new XRange
             {
                 Cells = cells.ToArray(),
                 Address = "A10:B12",
@@ -45,11 +43,37 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.1), xrange, Expression.Constant(2));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.1), _range, Expression.Constant(2));
             var result = resultExpression.LambdaInvoke<double>();
 
             // Assert
             Check.That(result).IsEqualTo(20.0);
+        }
+
+        [Fact]
+        public void VLookup_ExactMatch_Found()
+        {
+            // Assign
+
+            // Act
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.0), _range, Expression.Constant(2), Expression.Constant(true));
+            var result = resultExpression.LambdaInvoke<double>();
+
+            // Assert
+            Check.That(result).IsEqualTo(10.0);
+        }
+
+        [Fact]
+        public void VLookup_ExactMatch_NotFound()
+        {
+            // Assign
+
+            // Act
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.1), _range, Expression.Constant(2), Expression.Constant(true));
+            var result = resultExpression.LambdaInvoke<string>();
+
+            // Assert
+            Check.That(result).IsEqualTo("#N/A");
         }
     }
 }

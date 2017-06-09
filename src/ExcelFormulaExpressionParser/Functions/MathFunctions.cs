@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Compatibility;
+using ExcelFormulaExpressionParser.Constants;
 using ExcelFormulaExpressionParser.Models;
 
 namespace ExcelFormulaExpressionParser.Functions
 {
     internal static class MathFunctions
     {
-        private static readonly Expression Constant0 = Expression.Constant(0d);
-        private static readonly Expression Constant10 = Expression.Constant(10d);
-
         public static Expression Abs(Expression value)
         {
             return Expression.Call(null, typeof(Math).FindMethod("Abs", new[] { typeof(double) }), value);
@@ -44,8 +42,8 @@ namespace ExcelFormulaExpressionParser.Functions
 
         public static Expression Sum(IList<Expression> expressions, IList<XRange> ranges)
         {
-            Expression left = Constant0;
-            Expression right = Constant0;
+            Expression left = MathConstants.Constant0;
+            Expression right = MathConstants.Constant0;
 
             if (expressions.Any())
             {
@@ -64,11 +62,11 @@ namespace ExcelFormulaExpressionParser.Functions
         {
             var truncateMethod = typeof(Math).FindMethod("Truncate", new[] { typeof(double) });
 
-            Expression digits = expressions.Count == 1 ? Constant0 : expressions[1];
-            Expression first = Expression.Multiply(expressions[0], Power(Constant10, digits));
+            Expression digits = expressions.Count == 1 ? MathConstants.Constant0 : expressions[1];
+            Expression first = Expression.Multiply(expressions[0], Power(MathConstants.Constant10, digits));
             Expression truncate = Expression.Call(null, truncateMethod, first);
 
-            return Expression.Divide(truncate, Power(Constant10, digits));
+            return Expression.Divide(truncate, Power(MathConstants.Constant10, digits));
         }
 
         public static Expression ToInt(Expression value)

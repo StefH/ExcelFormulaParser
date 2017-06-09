@@ -1,6 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Linq.Expressions;
+using ExcelFormulaExpressionParser.Constants;
 using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaExpressionParser.Models;
 
@@ -23,14 +23,14 @@ namespace ExcelFormulaExpressionParser.Functions
 
                     if (match)
                     {
-                        int columnIndex = column.LambdaInvoke<int>();
+                        int columnIndex = MathFunctions.ToInt(column).LambdaInvoke<int>();
 
                         return range.Cells.First(c => c.Row == row && c.Column == range.Start.Column + columnIndex - 1).Expression;
                     }
                 }
             }
 
-            return null;
+            return Errors.NA;
         }
     }
 }
