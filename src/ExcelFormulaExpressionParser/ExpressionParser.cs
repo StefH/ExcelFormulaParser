@@ -171,13 +171,13 @@ namespace ExcelFormulaExpressionParser
         // -
         private Expression ParseOperatorPrefix()
         {
-            Expression left = ParseValue();
+            Expression left = ParseFunction();
 
             if (CT.Type == TokenType.OperatorPrefix && CT.Value == "-")
             {
                 var op = CT;
                 Next();
-                Expression right = ParseValue();
+                Expression right = ParseFunction();
 
                 switch (op.Value)
                 {
@@ -191,69 +191,9 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
-        private Expression ParseValue()
-        {
-            Expression left = ParseSubexpression();
-
-            if (CT.Type == TokenType.Operand)
-            {
-                if (CT.Subtype == TokenSubtype.Logical)
-                {
-                    var op = CT;
-                    Next();
-
-                    return Expression.Constant(bool.Parse(op.Value));
-                }
-
-                if (CT.Subtype == TokenSubtype.Number)
-                {
-                    var op = CT;
-                    Next();
-
-                    return Expression.Constant(double.Parse(op.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
-                }
-
-                if (CT.Subtype == TokenSubtype.Text)
-                {
-                    var op = CT;
-                    Next();
-
-                    return Expression.Constant(op.Value);
-                }
-            }
-
-            return left;
-        }
-
-        private Expression ParseSubexpression()
-        {
-            Expression left = ParseFunction();
-
-            if (CT.Type == TokenType.Subexpression)
-            {
-                if (CT.Subtype == TokenSubtype.Start)
-                {
-                    var tokens = new List<ExcelFormulaToken>();
-
-                    Next();
-                    while (CT.Subtype != TokenSubtype.Stop)
-                    {
-                        tokens.Add(CT);
-                        Next();
-                    }
-
-                    Next();
-
-                    return Parse(tokens, _context);
-                }
-            }
-
-            return left;
-        }
-
         private Expression ParseFunction()
         {
-            Expression left = ParseRange();
+            Expression left = ParseSubexpression();
 
             if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
             {
@@ -337,8 +277,38 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
+        private Expression ParseSubexpression()
+        {
+            Expression left = ParseRange();
+
+            if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
+            {
+                Next();
+
+                var tokens = new List<ExcelFormulaToken>();
+                while (CT.Subtype != TokenSubtype.Stop)
+                {
+                    if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
+                    {
+                        // Nested Subexpression
+                        return ParseSubexpression();
+                    }
+
+                    tokens.Add(CT);
+                    Next();
+                }
+
+                Next();
+
+                return Parse(tokens, _context);
+            }
+
+            return left;
+        }
+
         private Expression ParseRange()
         {
+            Expression left = ParseValue();
             if (CT.Type == TokenType.Operand && CT.Subtype == TokenSubtype.Range)
             {
                 var op = CT;
@@ -356,6 +326,38 @@ namespace ExcelFormulaExpressionParser
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");
+            }
+
+            return left;
+        }
+
+        private Expression ParseValue()
+        {
+            if (CT.Type == TokenType.Operand)
+            {
+                if (CT.Subtype == TokenSubtype.Logical)
+                {
+                    var op = CT;
+                    Next();
+
+                    return Expression.Constant(bool.Parse(op.Value));
+                }
+
+                if (CT.Subtype == TokenSubtype.Number)
+                {
+                    var op = CT;
+                    Next();
+
+                    return Expression.Constant(double.Parse(op.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
+                }
+
+                if (CT.Subtype == TokenSubtype.Text)
+                {
+                    var op = CT;
+                    Next();
+
+                    return Expression.Constant(op.Value);
+                }
             }
 
             return null;
