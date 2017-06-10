@@ -6,62 +6,62 @@ using Xunit;
 
 namespace ExcelFormulaExpressionParser.Tests
 {
-    public partial class OperandFunctionTests
+    partial class OperandFunctionTests
     {
         [Fact]
-        public void OperandFunction_NestedFunctions1()
+        public void OperandFunction_Math_Multiply()
         {
             // Assign
-            var formula = new ExcelFormula("=ABS(-10 * 1 + 7)");
+            var formula = new ExcelFormula("=3 * 7 * 9");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
-            Check.That(result).IsEqualTo(-3);
+            Check.That(result).IsEqualTo(189);
         }
 
         [Fact]
-        public void OperandFunction_NestedFunctions2()
+        public void OperandFunction_Math_Multiply_Negative()
         {
             // Assign
-            var formula = new ExcelFormula("=ABS(-10 * ROUND(1.123 * 2) + 7)");
+            var formula = new ExcelFormula("=-3 * 7");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
-            Check.That(result).IsEqualTo(27);
+            Check.That(result).IsEqualTo(-21);
         }
 
         [Fact]
-        public void OperandFunction_NestedSubexpressions1()
+        public void OperandFunction_Math_Multiply_Negative_Both()
         {
             // Assign
-            var formula = new ExcelFormula("=5 * (1 + 2)");
+            var formula = new ExcelFormula("=-3 * -7");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
-            Check.That(result).IsEqualTo(15);
+            Check.That(result).IsEqualTo(21);
         }
 
         [Fact]
-        public void OperandFunction_NestedSubexpressions2()
+        public void OperandFunction_Math_Order()
         {
             // Assign
-            var formula = new ExcelFormula("=(5 * (1 + 2))");
+            var formula = new ExcelFormula("=10 * 50 + 20");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
-            Check.That(result).IsEqualTo(15);
+            Check.That(result).IsEqualTo(520);
         }
     }
 }

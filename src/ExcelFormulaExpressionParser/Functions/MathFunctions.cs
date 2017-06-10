@@ -25,9 +25,9 @@ namespace ExcelFormulaExpressionParser.Functions
             return Expression.Power(number, power);
         }
 
-        public static Expression Round(Expression number, Expression digits)
+        public static Expression Round(Expression number, Expression digits = null)
         {
-            return Expression.Call(null, typeof(Math).FindMethod("Round", new[] { typeof(double), typeof(int) }), number, ToInt(digits));
+            return Expression.Call(null, typeof(Math).FindMethod("Round", new[] { typeof(double), typeof(int) }), number, digits != null ? ToInt(digits) : Expression.Constant(0));
         }
 
         public static Expression Sin(Expression value)

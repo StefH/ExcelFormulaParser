@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Extensions;
-using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaParser;
 using Moq;
 using NFluent;

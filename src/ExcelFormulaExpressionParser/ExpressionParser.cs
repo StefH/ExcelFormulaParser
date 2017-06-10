@@ -54,6 +54,21 @@ namespace ExcelFormulaExpressionParser
             _list = tokens;
             _context = context;
             _finder = finder;
+
+            foreach (var token in _list)
+            {
+                if (token.Type == TokenType.Subexpression)
+                {
+                    token.Type = TokenType.Function;
+
+                    if (token.Subtype == TokenSubtype.Start)
+                    {
+                        token.Value = "_";
+                    }
+                }
+            }
+
+            int y9 = 0;
         }
 
         public Expression Parse()
@@ -76,7 +91,7 @@ namespace ExcelFormulaExpressionParser
         {
             Expression left = ParseMultiplication();
 
-            if (CT.Type == TokenType.OperatorInfix && CT.Subtype == TokenSubtype.Math && (CT.Value == "+" || CT.Value == "-"))
+            while (CT.Type == TokenType.OperatorInfix && CT.Subtype == TokenSubtype.Math && (CT.Value == "+" || CT.Value == "-"))
             {
                 var op = CT;
                 Next();
@@ -101,28 +116,25 @@ namespace ExcelFormulaExpressionParser
         {
             Expression left = ParseLogical();
 
-            if (CT.Type == TokenType.OperatorInfix)
+            while (CT.Type == TokenType.OperatorInfix && CT.Subtype == TokenSubtype.Math && (CT.Value == "^" || CT.Value == "*" || CT.Value == "/"))
             {
-                if (CT.Subtype == TokenSubtype.Math && (CT.Value == "^" || CT.Value == "*" || CT.Value == "/"))
-                {
-                    var op = CT;
-                    Next();
-                    Expression right = ParseLogical();
+                var op = CT;
+                Next();
+                Expression right = ParseLogical();
 
-                    switch (op.Value)
-                    {
-                        case "^":
-                            left = MathFunctions.Power(left, right);
-                            break;
-                        case "*":
-                            left = Expression.Multiply(left, right);
-                            break;
-                        case "/":
-                            left = Expression.Divide(left, right);
-                            break;
-                        default:
-                            throw new NotSupportedException(op.Value);
-                    }
+                switch (op.Value)
+                {
+                    case "^":
+                        left = MathFunctions.Power(left, right);
+                        break;
+                    case "*":
+                        left = Expression.Multiply(left, right);
+                        break;
+                    case "/":
+                        left = Expression.Divide(left, right);
+                        break;
+                    default:
+                        throw new NotSupportedException(op.Value);
                 }
             }
 
@@ -134,7 +146,7 @@ namespace ExcelFormulaExpressionParser
         {
             Expression left = ParseOperatorPrefix();
 
-            if (CT.Type == TokenType.OperatorInfix && CT.Subtype == TokenSubtype.Logical)
+            while (CT.Type == TokenType.OperatorInfix && CT.Subtype == TokenSubtype.Logical)
             {
                 var op = CT;
                 Next();
@@ -173,7 +185,7 @@ namespace ExcelFormulaExpressionParser
         {
             Expression left = ParseFunction();
 
-            if (CT.Type == TokenType.OperatorPrefix && CT.Value == "-")
+            while (CT.Type == TokenType.OperatorPrefix && CT.Value == "-")
             {
                 var op = CT;
                 Next();
@@ -191,11 +203,12 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
+        // =ABS(10 * ROUND(1.123 * 2) + 20)
         private Expression ParseFunction()
         {
-            Expression left = ParseSubexpression();
+            Expression left = ParseRange();
 
-            if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
+            while (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
             {
                 void AddToArgumentsList(ICollection<object> args, Expression expression)
                 {
@@ -222,7 +235,9 @@ namespace ExcelFormulaExpressionParser
                     if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
                     {
                         // Nested function
-                        AddToArgumentsList(arguments, ParseFunction());
+                        var e = ParseAdditive();
+
+                        AddToArgumentsList(arguments, e);
                     }
                     else if (CT.Type == TokenType.Argument)
                     {
@@ -240,6 +255,7 @@ namespace ExcelFormulaExpressionParser
 
                 if (tokens.Any())
                 {
+                    // tokens.Reverse();
                     AddToArgumentsList(arguments, Parse(tokens, _context));
                 }
 
@@ -250,6 +266,7 @@ namespace ExcelFormulaExpressionParser
 
                 switch (functionName)
                 {
+                    case "_": return expressions[0];
                     case "ABS": return MathFunctions.Abs(expressions[0]);
                     case "AND": return LogicalFunctions.And(expressions);
                     case "COS": return MathFunctions.Cos(expressions[0]);
@@ -260,7 +277,7 @@ namespace ExcelFormulaExpressionParser
                     case "NOW": return DateFunctions.Now();
                     case "OR": return LogicalFunctions.Or(expressions);
                     case "POWER": return MathFunctions.Power(expressions[0], expressions[1]);
-                    case "ROUND": return MathFunctions.Round(expressions[0], expressions[1]);
+                    case "ROUND": return MathFunctions.Round(expressions[0], expressions.Length == 2 ? expressions[1] : null);
                     case "SIN": return MathFunctions.Sin(expressions[0]);
                     case "SQRT": return MathFunctions.Sqrt(expressions[0]);
                     case "SUM": return MathFunctions.Sum(expressions, xranges);
@@ -277,31 +294,39 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
-        private Expression ParseSubexpression()
+        // "=5 * (1 + 2)" and "=(5 * (1 + 2))"
+        private Expression ParseSubexpressionX()
         {
             Expression left = ParseRange();
 
-            if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
-            {
-                Next();
+            //if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
+            //{
+            //    var tokens = new List<ExcelFormulaToken>
+            //    {
+            //        new ExcelFormulaToken(string.Empty, TokenType.Function, TokenSubtype.Start)
+            //    };
 
-                var tokens = new List<ExcelFormulaToken>();
-                while (CT.Subtype != TokenSubtype.Stop)
-                {
-                    if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
-                    {
-                        // Nested Subexpression
-                        return ParseSubexpression();
-                    }
+            //    Next();
 
-                    tokens.Add(CT);
-                    Next();
-                }
+            //    while (CT.Subtype != TokenSubtype.Stop)
+            //    {
+            //        if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
+            //        {
+            //            tokens.Add(new ExcelFormulaToken(string.Empty, TokenType.Function, TokenSubtype.Start));
+            //        }
+            //        else
+            //        {
+            //            tokens.Add(CT);
+            //        }
 
-                Next();
+            //        Next();
+            //    }
 
-                return Parse(tokens, _context);
-            }
+            //    Next();
+
+            //    var x =  Parse(tokens, _context);
+            //    return x;
+            //}
 
             return left;
         }
@@ -309,6 +334,7 @@ namespace ExcelFormulaExpressionParser
         private Expression ParseRange()
         {
             Expression left = ParseValue();
+
             if (CT.Type == TokenType.Operand && CT.Subtype == TokenSubtype.Range)
             {
                 var op = CT;
