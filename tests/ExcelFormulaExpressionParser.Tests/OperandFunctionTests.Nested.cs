@@ -9,31 +9,45 @@ namespace ExcelFormulaExpressionParser.Tests
     public partial class OperandFunctionTests
     {
         [Fact]
-        public void OperandFunction_NestedFunctions1()
+        public void OperandFunction_NestedFunctions0()
         {
             // Assign
-            var formula = new ExcelFormula("=ABS(-10 * 1 + 7)");
+            var formula = new ExcelFormula("=ROUND(1.01, 0) + 1");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
-            Check.That(result).IsEqualTo(-3);
+            Check.That(result).IsEqualTo(2);
+        }
+
+        [Fact]
+        public void OperandFunction_NestedFunctions1()
+        {
+            // Assign
+            var formula = new ExcelFormula("=ROUND(-10 * 1.001 + 7, 0) + 1");
+
+            // Act
+            Expression expression = new ExpressionParser(formula).Parse();
+            var result = expression.LambdaInvoke<double>();
+
+            // Assert
+            Check.That(result).IsEqualTo(-2);
         }
 
         [Fact]
         public void OperandFunction_NestedFunctions2()
         {
             // Assign
-            var formula = new ExcelFormula("=ABS(-10 * ROUND(1.123 * 2) + 7)");
+            var formula = new ExcelFormula("=ROUND(-3 * ROUND(1.001 * 2, 1) + 7.001, 1) + 11");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
-            Check.That(result).IsEqualTo(27);
+            Check.That(result).IsEqualTo(18);
         }
 
         [Fact]

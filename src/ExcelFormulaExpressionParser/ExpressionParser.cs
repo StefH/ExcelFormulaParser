@@ -67,15 +67,13 @@ namespace ExcelFormulaExpressionParser
                     }
                 }
             }
-
-            int y9 = 0;
         }
 
         public Expression Parse()
         {
             _index = 0;
 
-            return ParseAdditive();
+            return ParseArgs();
         }
 
         private void Next()
@@ -84,6 +82,33 @@ namespace ExcelFormulaExpressionParser
             {
                 _index++;
             }
+        }
+
+        private Expression ParseArgs()
+        {
+            Expression left = ParseAdditive();
+
+            XArg xarg = null;
+            while (CT.Type == TokenType.Argument)
+            {
+                Next();
+                Expression right = ParseAdditive();
+
+                var constantExpression = left as ConstantExpression;
+                if (constantExpression != null && constantExpression.Type == typeof(XArg))
+                {
+                    xarg = (XArg)constantExpression.Value;
+                    xarg.Expressions.Add(right);
+                }
+                else
+                {
+                    xarg = new XArg { Expressions = new[] { left, right }.ToList() };
+
+                    left = Expression.Constant(xarg);
+                }
+            }
+
+            return xarg != null ? Expression.Constant(xarg) : left;
         }
 
         // +, -
@@ -144,13 +169,13 @@ namespace ExcelFormulaExpressionParser
         // >, >=, <, <=, <>, =
         private Expression ParseLogical()
         {
-            Expression left = ParseOperatorPrefix();
+            Expression left = ParseFunction();
 
             while (CT.Type == TokenType.OperatorInfix && CT.Subtype == TokenSubtype.Logical)
             {
                 var op = CT;
                 Next();
-                Expression right = ParseOperatorPrefix();
+                Expression right = ParseFunction();
 
                 switch (op.Value)
                 {
@@ -180,42 +205,51 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
-        // -
-        private Expression ParseOperatorPrefix()
-        {
-            Expression left = ParseFunction();
-
-            while (CT.Type == TokenType.OperatorPrefix && CT.Value == "-")
-            {
-                var op = CT;
-                Next();
-                Expression right = ParseFunction();
-
-                switch (op.Value)
-                {
-                    case "-":
-                        return Expression.Negate(right);
-                    default:
-                        throw new NotSupportedException(op.Value);
-                }
-            }
-
-            return left;
-        }
-
-        // =ABS(10 * ROUND(1.123 * 2) + 20)
+        // =ABS(-10 * ROUND(1.123 * 2, 1) + 7) + 11
         private Expression ParseFunction()
         {
             Expression left = ParseRange();
 
             while (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
             {
+                string functionName = CT.Value;
+
+                Next();
+
+                int indent = 0;
+                var tokens = new List<ExcelFormulaToken>();
+                do
+                {
+                    if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
+                    {
+                        indent++;
+                    }
+
+                    if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Stop)
+                    {
+                        indent--;
+                    }
+
+                    tokens.Add(CT);
+
+                    Next();
+                } while (!(CT.Subtype == TokenSubtype.Stop && indent == 0));
+                
                 void AddToArgumentsList(ICollection<object> args, Expression expression)
                 {
                     var constantExpression = expression as ConstantExpression;
-                    if (constantExpression != null && constantExpression.Type == typeof(XRange))
+                    if (constantExpression != null && constantExpression.Type == typeof(XArg))
                     {
-                        args.Add(constantExpression.Value);
+                        XArg xarg = (XArg)constantExpression.Value;
+                        foreach (var xargExpression in xarg.Expressions)
+                        {
+                            AddToArgumentsList(args, xargExpression);
+                        }
+                    }
+                    else if (constantExpression != null && constantExpression.Type == typeof(XRange))
+                    {
+                        XRange xrange = (XRange)constantExpression.Value;
+                        args.Add(xrange);
                     }
                     else
                     {
@@ -223,46 +257,117 @@ namespace ExcelFormulaExpressionParser
                     }
                 }
 
-                string functionName = CT.Value;
+                var expressionParsed = Parse(tokens, _context);
 
                 var arguments = new List<object>();
-                var tokens = new List<ExcelFormulaToken>();
-
-                Next();
-
-                while (CT.Subtype != TokenSubtype.Stop)
-                {
-                    if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
-                    {
-                        // Nested function
-                        var e = ParseAdditive();
-
-                        AddToArgumentsList(arguments, e);
-                    }
-                    else if (CT.Type == TokenType.Argument)
-                    {
-                        AddToArgumentsList(arguments, Parse(tokens, _context));
-
-                        tokens.Clear();
-                    }
-                    else
-                    {
-                        tokens.Add(CT);
-                    }
-
-                    Next();
-                }
-
-                if (tokens.Any())
-                {
-                    // tokens.Reverse();
-                    AddToArgumentsList(arguments, Parse(tokens, _context));
-                }
-
-                Next();
+                AddToArgumentsList(arguments, expressionParsed);
 
                 var expressions = arguments.Where(a => a is Expression).Cast<Expression>().ToArray();
                 var xranges = arguments.Where(a => a is XRange).Cast<XRange>().ToArray();
+
+                //var expressionList = new List<Expression>();
+                //var xrangeList = new List<XRange>();
+
+                //var constantExpression = expression as ConstantExpression;
+                //if (constantExpression != null && constantExpression.Type == typeof(XArg))
+                //{
+                //    var xargs = (XArg) constantExpression.Value;
+                //    foreach (Expression arg in xargs.Expressions)
+                //    {
+                //        var c = arg as ConstantExpression;
+                //        if (c != null && c.Type == typeof(XRange))
+                //        {
+                //            xrangeList.Add((XRange) c.Value);
+                //        }
+                //        else
+                //        {
+                //            expressionList.Add(arg);
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    expressionList.Add(expression);
+                //}
+
+                //if (constantExpression != null && constantExpression.Type == typeof(XRange))
+                //{
+                //    xrangeList.Add((XRange) constantExpression.Value);
+                //}
+
+                //var expressions = expressionList.ToArray();
+                //var xranges = xrangeList.ToArray();
+
+                //var grouping = tokens.GroupBy(t => t.Type == TokenType.Argument).ToList();
+                //foreach (var g in grouping)
+                //{
+                //    AddToArgumentsList(arguments, Parse(g.ToList(), _context));
+                //}
+
+
+                //var ex = Parse(tokens, _context);
+
+                //var argTokens = new List<ExcelFormulaToken>();
+                //foreach (var token in tokens)
+                //{
+                //    //if (token.Type == TokenType.Function && token.Subtype == TokenSubtype.Start)
+                //    //{
+                //    //    AddToArgumentsList(arguments, Parse(argTokens, _context));
+
+                //    //    argTokens.Clear();
+                //    //}
+                //    if (token.Type == TokenType.Argument)
+                //    {
+                //        AddToArgumentsList(arguments, Parse(argTokens, _context));
+
+                //        argTokens.Clear();
+                //    }
+                //    else
+                //    {
+                //        argTokens.Add(token);
+                //    }
+                //}
+
+                //if (argTokens.Any())
+                //{
+                //    AddToArgumentsList(arguments, Parse(argTokens, _context));
+                //}
+
+                //var w = 9;
+
+                //var ex = Parse(tokens, _context);
+
+                //Next();
+
+                //if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
+                //{
+                //    // Nested function
+                //    var e = ParseAdditive();
+
+                //    AddToArgumentsList(arguments, e);
+                //}
+                //else if (CT.Type == TokenType.Argument)
+                //{
+                //    AddToArgumentsList(arguments, Parse(tokens, _context));
+
+                //    tokens.Clear();
+                //}
+                //else
+                //{
+                //    tokens.Add(CT);
+                //}
+
+                //Next();
+
+                //if (tokens.Any())
+                //{
+                //    // tokens.Reverse();
+                //    AddToArgumentsList(arguments, Parse(tokens, _context));
+                //}
+
+                //Next();
+
+
 
                 switch (functionName)
                 {
@@ -294,46 +399,36 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
-        // "=5 * (1 + 2)" and "=(5 * (1 + 2))"
-        private Expression ParseSubexpressionX()
+        private Expression ParseArgOld()
         {
             Expression left = ParseRange();
 
-            //if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
-            //{
-            //    var tokens = new List<ExcelFormulaToken>
-            //    {
-            //        new ExcelFormulaToken(string.Empty, TokenType.Function, TokenSubtype.Start)
-            //    };
+            XArg xarg = null;
+            while (CT.Type == TokenType.Argument)
+            {
+                Next();
+                Expression right = Parse();
+                
+                var constantExpression = left as ConstantExpression;
+                if (constantExpression != null && constantExpression.Type == typeof(XArg))
+                {
+                    xarg = (XArg) constantExpression.Value;
+                    xarg.Expressions.Add(right);
+                }
+                else
+                {
+                    xarg = new XArg { Expressions = new [] { left, right }.ToList() };
 
-            //    Next();
+                    left = Expression.Constant(xarg);
+                }
+            }
 
-            //    while (CT.Subtype != TokenSubtype.Stop)
-            //    {
-            //        if (CT.Type == TokenType.Subexpression && CT.Subtype == TokenSubtype.Start)
-            //        {
-            //            tokens.Add(new ExcelFormulaToken(string.Empty, TokenType.Function, TokenSubtype.Start));
-            //        }
-            //        else
-            //        {
-            //            tokens.Add(CT);
-            //        }
-
-            //        Next();
-            //    }
-
-            //    Next();
-
-            //    var x =  Parse(tokens, _context);
-            //    return x;
-            //}
-
-            return left;
+            return xarg != null ? Expression.Constant(xarg) : left;
         }
 
         private Expression ParseRange()
         {
-            Expression left = ParseValue();
+            Expression left = ParseOperatorPrefix();
 
             if (CT.Type == TokenType.Operand && CT.Subtype == TokenSubtype.Range)
             {
@@ -357,8 +452,33 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
+        // -
+        private Expression ParseOperatorPrefix()
+        {
+            Expression left = ParseValue();
+
+            while (CT.Type == TokenType.OperatorPrefix && CT.Value == "-")
+            {
+                var op = CT;
+                Next();
+                Expression right = ParseValue();
+
+                switch (op.Value)
+                {
+                    case "-":
+                        return Expression.Negate(right);
+                    default:
+                        throw new NotSupportedException(op.Value);
+                }
+            }
+
+            return left;
+        }
+
         private Expression ParseValue()
         {
+            Expression left = null;
+
             if (CT.Type == TokenType.Operand)
             {
                 if (CT.Subtype == TokenSubtype.Logical)
@@ -386,9 +506,9 @@ namespace ExcelFormulaExpressionParser
                 }
             }
 
-            return null;
+            return left;
         }
-
+        
         private Expression Parse(IList<ExcelFormulaToken> tokens, ExcelFormulaContext context)
         {
             if (tokens == null)

@@ -26,7 +26,7 @@ namespace ExcelFormulaExpressionParser.Tests
         public void OperandFunction_And()
         {
             // Assign
-            var formula = new ExcelFormula("=AND(TRUE, TRUE, FALSE)");
+            var formula = new ExcelFormula("=AND(TRUE, FALSE, TRUE, TRUE, FALSE, FALSE)");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
@@ -76,20 +76,6 @@ namespace ExcelFormulaExpressionParser.Tests
 
             // Assert
             Check.That(result).IsEqualTo(true);
-        }
-
-        [Fact]
-        public void OperandFunction_Sum()
-        {
-            // Assign
-            var formula = new ExcelFormula("=SUM(1,2,3)");
-
-            // Act
-            Expression expression = new ExpressionParser(formula).Parse();
-            var result = expression.LambdaInvoke<double>();
-
-            // Assert
-            Check.That(result).IsEqualTo(6);
         }
     }
 }

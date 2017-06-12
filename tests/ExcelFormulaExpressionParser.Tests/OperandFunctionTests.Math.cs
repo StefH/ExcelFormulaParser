@@ -63,5 +63,19 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assert
             Check.That(result).IsEqualTo(520);
         }
+
+        [Fact]
+        public void OperandFunction_Math_Sum()
+        {
+            // Assign
+            var formula = new ExcelFormula("=SUM(1,2,3)");
+
+            // Act
+            Expression expression = new ExpressionParser(formula).Parse();
+            var result = expression.LambdaInvoke<double>();
+
+            // Assert
+            Check.That(result).IsEqualTo(6);
+        }
     }
 }
