@@ -205,15 +205,14 @@ namespace ExcelFormulaExpressionParser
             return left;
         }
 
-        // =ABS(-10 * ROUND(1.123 * 2, 1) + 7) + 11
+        // =ROUND(-3 * ROUND(1.001 * 2, 1) + 7.001, 1) + 11
         private Expression ParseFunction()
         {
             Expression left = ParseRange();
 
-            while (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
+            while (CT.Type == TokenType.Function)
             {
-                string functionName = CT.Value;
-
+                var op = CT;
                 Next();
 
                 int indent = 0;
@@ -234,196 +233,71 @@ namespace ExcelFormulaExpressionParser
 
                     Next();
                 } while (!(CT.Subtype == TokenSubtype.Stop && indent == 0));
-                
-                void AddToArgumentsList(ICollection<object> args, Expression expression)
-                {
-                    var constantExpression = expression as ConstantExpression;
-                    if (constantExpression != null && constantExpression.Type == typeof(XArg))
-                    {
-                        XArg xarg = (XArg)constantExpression.Value;
-                        foreach (var xargExpression in xarg.Expressions)
-                        {
-                            AddToArgumentsList(args, xargExpression);
-                        }
-                    }
-                    else if (constantExpression != null && constantExpression.Type == typeof(XRange))
-                    {
-                        XRange xrange = (XRange)constantExpression.Value;
-                        args.Add(xrange);
-                    }
-                    else
-                    {
-                        args.Add(expression);
-                    }
-                }
 
-                var expressionParsed = Parse(tokens, _context);
+                Next();
+                var right = ParseRange();
 
-                var arguments = new List<object>();
-                AddToArgumentsList(arguments, expressionParsed);
-
-                var expressions = arguments.Where(a => a is Expression).Cast<Expression>().ToArray();
-                var xranges = arguments.Where(a => a is XRange).Cast<XRange>().ToArray();
-
-                //var expressionList = new List<Expression>();
-                //var xrangeList = new List<XRange>();
-
-                //var constantExpression = expression as ConstantExpression;
-                //if (constantExpression != null && constantExpression.Type == typeof(XArg))
-                //{
-                //    var xargs = (XArg) constantExpression.Value;
-                //    foreach (Expression arg in xargs.Expressions)
-                //    {
-                //        var c = arg as ConstantExpression;
-                //        if (c != null && c.Type == typeof(XRange))
-                //        {
-                //            xrangeList.Add((XRange) c.Value);
-                //        }
-                //        else
-                //        {
-                //            expressionList.Add(arg);
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    expressionList.Add(expression);
-                //}
-
-                //if (constantExpression != null && constantExpression.Type == typeof(XRange))
-                //{
-                //    xrangeList.Add((XRange) constantExpression.Value);
-                //}
-
-                //var expressions = expressionList.ToArray();
-                //var xranges = xrangeList.ToArray();
-
-                //var grouping = tokens.GroupBy(t => t.Type == TokenType.Argument).ToList();
-                //foreach (var g in grouping)
-                //{
-                //    AddToArgumentsList(arguments, Parse(g.ToList(), _context));
-                //}
-
-
-                //var ex = Parse(tokens, _context);
-
-                //var argTokens = new List<ExcelFormulaToken>();
-                //foreach (var token in tokens)
-                //{
-                //    //if (token.Type == TokenType.Function && token.Subtype == TokenSubtype.Start)
-                //    //{
-                //    //    AddToArgumentsList(arguments, Parse(argTokens, _context));
-
-                //    //    argTokens.Clear();
-                //    //}
-                //    if (token.Type == TokenType.Argument)
-                //    {
-                //        AddToArgumentsList(arguments, Parse(argTokens, _context));
-
-                //        argTokens.Clear();
-                //    }
-                //    else
-                //    {
-                //        argTokens.Add(token);
-                //    }
-                //}
-
-                //if (argTokens.Any())
-                //{
-                //    AddToArgumentsList(arguments, Parse(argTokens, _context));
-                //}
-
-                //var w = 9;
-
-                //var ex = Parse(tokens, _context);
-
-                //Next();
-
-                //if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
-                //{
-                //    // Nested function
-                //    var e = ParseAdditive();
-
-                //    AddToArgumentsList(arguments, e);
-                //}
-                //else if (CT.Type == TokenType.Argument)
-                //{
-                //    AddToArgumentsList(arguments, Parse(tokens, _context));
-
-                //    tokens.Clear();
-                //}
-                //else
-                //{
-                //    tokens.Add(CT);
-                //}
-
-                //Next();
-
-                //if (tokens.Any())
-                //{
-                //    // tokens.Reverse();
-                //    AddToArgumentsList(arguments, Parse(tokens, _context));
-                //}
-
-                //Next();
-
-
-
-                switch (functionName)
-                {
-                    case "_": return expressions[0];
-                    case "ABS": return MathFunctions.Abs(expressions[0]);
-                    case "AND": return LogicalFunctions.And(expressions);
-                    case "COS": return MathFunctions.Cos(expressions[0]);
-                    case "DATE": return DateFunctions.Date(expressions[0], expressions[1], expressions[2]);
-                    case "DAY": return DateFunctions.Day(expressions[0]);
-                    case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
-                    case "MONTH": return DateFunctions.Month(expressions[0]);
-                    case "NOW": return DateFunctions.Now();
-                    case "OR": return LogicalFunctions.Or(expressions);
-                    case "POWER": return MathFunctions.Power(expressions[0], expressions[1]);
-                    case "ROUND": return MathFunctions.Round(expressions[0], expressions.Length == 2 ? expressions[1] : null);
-                    case "SIN": return MathFunctions.Sin(expressions[0]);
-                    case "SQRT": return MathFunctions.Sqrt(expressions[0]);
-                    case "SUM": return MathFunctions.Sum(expressions, xranges);
-                    case "TRUNC": return MathFunctions.Trunc(expressions);
-                    case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
-                    case "YEAR": return DateFunctions.Year(expressions[0]);
-
-                    default:
-                        throw new NotImplementedException(functionName);
-                }
-
+                // If there is more to be done (right != null), return right, else return the value from this function.
+                return right ?? ParseFunctionWithArgs(op.Value, tokens, _context);
             }
 
             return left;
         }
 
-        private Expression ParseArgOld()
+        private Expression ParseFunctionWithArgs(string functionName, IList<ExcelFormulaToken> tokens, ExcelFormulaContext context)
         {
-            Expression left = ParseRange();
-
-            XArg xarg = null;
-            while (CT.Type == TokenType.Argument)
+            void AddToArgumentsList(ICollection<object> args, Expression expression)
             {
-                Next();
-                Expression right = Parse();
-                
-                var constantExpression = left as ConstantExpression;
+                var constantExpression = expression as ConstantExpression;
                 if (constantExpression != null && constantExpression.Type == typeof(XArg))
                 {
-                    xarg = (XArg) constantExpression.Value;
-                    xarg.Expressions.Add(right);
+                    XArg xarg = (XArg)constantExpression.Value;
+                    foreach (var xargExpression in xarg.Expressions)
+                    {
+                        AddToArgumentsList(args, xargExpression);
+                    }
+                }
+                else if (constantExpression != null && constantExpression.Type == typeof(XRange))
+                {
+                    XRange xrange = (XRange)constantExpression.Value;
+                    args.Add(xrange);
                 }
                 else
                 {
-                    xarg = new XArg { Expressions = new [] { left, right }.ToList() };
-
-                    left = Expression.Constant(xarg);
+                    args.Add(expression);
                 }
             }
 
-            return xarg != null ? Expression.Constant(xarg) : left;
+            var arguments = new List<object>();
+            AddToArgumentsList(arguments, Parse(tokens, context));
+
+            var expressions = arguments.Where(a => a is Expression).Cast<Expression>().ToArray();
+            var xranges = arguments.Where(a => a is XRange).Cast<XRange>().ToArray();
+
+            switch (functionName)
+            {
+                case "_": return expressions[0];
+                case "ABS": return MathFunctions.Abs(expressions[0]);
+                case "AND": return LogicalFunctions.And(expressions);
+                case "COS": return MathFunctions.Cos(expressions[0]);
+                case "DATE": return DateFunctions.Date(expressions[0], expressions[1], expressions[2]);
+                case "DAY": return DateFunctions.Day(expressions[0]);
+                case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
+                case "MONTH": return DateFunctions.Month(expressions[0]);
+                case "NOW": return DateFunctions.Now();
+                case "OR": return LogicalFunctions.Or(expressions);
+                case "POWER": return MathFunctions.Power(expressions[0], expressions[1]);
+                case "ROUND": return MathFunctions.Round(expressions[0], expressions.Length == 2 ? expressions[1] : null);
+                case "SIN": return MathFunctions.Sin(expressions[0]);
+                case "SQRT": return MathFunctions.Sqrt(expressions[0]);
+                case "SUM": return MathFunctions.Sum(expressions, xranges);
+                case "TRUNC": return MathFunctions.Trunc(expressions);
+                case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
+                case "YEAR": return DateFunctions.Year(expressions[0]);
+
+                default:
+                    throw new NotImplementedException(functionName);
+            }
         }
 
         private Expression ParseRange()
@@ -508,7 +382,7 @@ namespace ExcelFormulaExpressionParser
 
             return left;
         }
-        
+
         private Expression Parse(IList<ExcelFormulaToken> tokens, ExcelFormulaContext context)
         {
             if (tokens == null)
