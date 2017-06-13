@@ -8,11 +8,11 @@ namespace ExcelFormulaParser
 
         public ExcelFormulaTokenSubtype Subtype { get; set; }
 
-        public ExcelFormulaToken(string value, ExcelFormulaTokenType type) : this(value, type, ExcelFormulaTokenSubtype.Nothing)
+        internal ExcelFormulaToken(string value, ExcelFormulaTokenType type) : this(value, type, ExcelFormulaTokenSubtype.Nothing)
         {
         }
 
-        public ExcelFormulaToken(string value, ExcelFormulaTokenType type, ExcelFormulaTokenSubtype subtype)
+        internal ExcelFormulaToken(string value, ExcelFormulaTokenType type, ExcelFormulaTokenSubtype subtype)
         {
             Value = value;
             Type = type;

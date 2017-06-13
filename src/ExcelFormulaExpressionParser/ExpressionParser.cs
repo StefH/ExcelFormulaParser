@@ -10,6 +10,7 @@ using ExcelFormulaParser;
 using JetBrains.Annotations;
 using TokenType = ExcelFormulaParser.ExcelFormulaTokenType;
 using TokenSubtype = ExcelFormulaParser.ExcelFormulaTokenSubtype;
+using ExcelFormulaExpressionParser.Expressions;
 
 namespace ExcelFormulaExpressionParser
 {
@@ -88,27 +89,24 @@ namespace ExcelFormulaExpressionParser
         {
             Expression left = ParseAdditive();
 
-            XArg xarg = null;
             while (CT.Type == TokenType.Argument)
             {
                 Next();
                 Expression right = ParseAdditive();
 
-                var constantExpression = left as ConstantExpression;
-                if (constantExpression != null && constantExpression.Type == typeof(XArg))
+                var argExpression = left as XArgExpression;
+                if (argExpression != null)
                 {
-                    xarg = (XArg)constantExpression.Value;
-                    xarg.Expressions.Add(right);
+                    left = argExpression.Add(right);
                 }
                 else
                 {
-                    xarg = new XArg { Expressions = new[] { left, right }.ToList() };
-
-                    left = Expression.Constant(xarg);
+                    argExpression = XArgExpression.Create(left);
+                    left = argExpression.Add(right);
                 }
             }
 
-            return xarg != null ? Expression.Constant(xarg) : left;
+            return left;
         }
 
         // +, -
@@ -248,24 +246,25 @@ namespace ExcelFormulaExpressionParser
         {
             void AddToArgumentsList(ICollection<object> args, Expression expression)
             {
-                var constantExpression = expression as ConstantExpression;
-                if (constantExpression != null && constantExpression.Type == typeof(XArg))
+                var argExpression = expression as XArgExpression;
+                if (argExpression != null)
                 {
-                    XArg xarg = (XArg)constantExpression.Value;
-                    foreach (var xargExpression in xarg.Expressions)
+                    foreach (var xargExpression in argExpression.Expressions)
                     {
                         AddToArgumentsList(args, xargExpression);
                     }
+
+                    return;
                 }
-                else if (constantExpression != null && constantExpression.Type == typeof(XRange))
+
+                var rangeExpression = expression as XRangeExpression;
+                if (rangeExpression != null)
                 {
-                    XRange xrange = (XRange)constantExpression.Value;
-                    args.Add(xrange);
+                    args.Add(rangeExpression.XRange);
+                    return;
                 }
-                else
-                {
-                    args.Add(expression);
-                }
+
+                args.Add(expression);
             }
 
             var arguments = new List<object>();
@@ -317,7 +316,7 @@ namespace ExcelFormulaExpressionParser
                         cell.Expression = Parse(cell.ExcelFormula, _context);
                     }
 
-                    return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : Expression.Constant(xrange);
+                    return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : XRangeExpression.Create(xrange);
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");
