@@ -9,6 +9,7 @@ using ExcelFormulaExpressionParser.Helpers;
 using ExcelFormulaExpressionParser.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Utilities;
+using System.Globalization;
 
 namespace ExcelFormulaParser.Expressions.Console
 {
@@ -16,8 +17,52 @@ namespace ExcelFormulaParser.Expressions.Console
     {
         static void Main(string[] args)
         {
-            CalcTest();
+            //Test();
+            //CalcTest();
             ExcelTest();
+        }
+
+        private static void Test()
+        {
+            using (var package = new ExcelPackage(new FileInfo("c:\\temp\\test.xlsx")))
+            {
+                var sheets = new List<XSheet>();
+                foreach (var worksheet in package.Workbook.Worksheets)
+                {
+                    var sheet = new XSheet(worksheet.Name);
+
+                    // Obtain the worksheet size 
+                    ExcelCellAddress startCell = worksheet.Dimension.Start;
+                    ExcelCellAddress endCell = worksheet.Dimension.End;
+
+                    for (int r = startCell.Row; r <= endCell.Row; r++)
+                    {
+                        var xrow = new XRow(sheet, r);
+                        for (int c = startCell.Column; c <= endCell.Column; c++)
+                        {
+                            xrow.Cells.Add(ToXCell(xrow, worksheet.Cells[r, c]));
+                        }
+
+                        sheet.Rows.Add(xrow);
+                    }
+
+                    sheets.Add(sheet);
+                }
+
+                var calcCell = sheets[2].Rows[16].Cells[2];
+                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, sheets);
+
+                Expression x = parser.Parse();
+                System.Console.WriteLine($"Expression = `{x}`");
+
+                var o = x.Optimize();
+
+                System.Console.WriteLine($"Expression Optimize = `{o}`");
+
+                var result = o.LambdaInvoke<double>();
+
+                System.Console.WriteLine($"result = `{result}`");
+            }
         }
 
         private static void ExcelTest()
@@ -126,6 +171,12 @@ namespace ExcelFormulaParser.Expressions.Console
                 var dateyearnowResult = dateyearnowParser.Parse().LambdaInvoke<double>();
                 System.Console.WriteLine($"dateyearnowResult = `{dateyearnowResult}`");
 
+                var named = sheets[0].Rows[9].Cells[1];
+                var namedParser = new ExpressionParser(named.ExcelFormula, (ExcelFormulaContext)named.ExcelFormula.Context, sheets);
+
+                var namedResult = namedParser.Parse().LambdaInvoke<double>();
+                System.Console.WriteLine($"namedResult = `{namedResult}`");
+
 
                 var vlookup = sheets[3].Rows[0].Cells[4];
                 var vlookupParser = new ExpressionParser(vlookup.ExcelFormula, (ExcelFormulaContext)vlookup.ExcelFormula.Context, sheets);
@@ -174,11 +225,12 @@ namespace ExcelFormulaParser.Expressions.Console
                 else if (range.Value is DateTime)
                 {
                     double value = DateTimeHelpers.ToOADate((DateTime) range.Value);
-                    cell.ExcelFormula = new ExcelFormula("=" + value, context);
+                    cell.ExcelFormula = new ExcelFormula("=" + value.ToString(CultureInfo.InvariantCulture), context);
                 }
                 else if (range.Value.IsNumeric())
                 {
-                    cell.ExcelFormula = new ExcelFormula("=" + range.Value, context);
+                    double value = Convert.ToDouble(range.Value);
+                    cell.ExcelFormula = new ExcelFormula("=" + value.ToString(CultureInfo.InvariantCulture), context);
                 }
                 else
                 {

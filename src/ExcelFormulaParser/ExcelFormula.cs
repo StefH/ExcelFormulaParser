@@ -26,8 +26,8 @@ namespace ExcelFormulaParser
         const string OperatorsInfix = "+-*/^&=><";
         const string OperatorsPostfix = "%";
 
-        internal readonly string[] ExcelErrors = { "#NULL!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#N/A" };
-        internal readonly string[] ComparatorsMulti = { ">=", "<=", "<>" };
+        internal static readonly string[] ExcelErrors = { "#NULL!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#N/A" };
+        internal static readonly string[] ComparatorsMulti = { ">=", "<=", "<>" };
 
         private readonly string _formula;
         private List<ExcelFormulaToken> _tokens = new List<ExcelFormulaToken>();
