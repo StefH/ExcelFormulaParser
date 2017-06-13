@@ -16,8 +16,8 @@ namespace ExcelFormulaParser.Expressions.Console
     {
         static void Main(string[] args)
         {
-            ExcelTest();
             CalcTest();
+            ExcelTest();
         }
 
         private static void ExcelTest()
@@ -192,33 +192,36 @@ namespace ExcelFormulaParser.Expressions.Console
         private static void CalcTest()
         {
             // haakjes, machtsverheffen, vermenigvuldigen, delen, worteltrekken, optellen, aftrekken
-            var excelFormula = new ExcelFormula("=2^3 - -(1+1+1) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
-            var parser = new ExpressionParser(excelFormula);
+            //var excelFormula = new ExcelFormula("=2^3 - -(1+1+1) * ROUND(4/2.7,2) + POWER(1+1,4) + 500 + SIN(3.1415926) + COS(3.1415926/2) + ABS(-1)");
+            //var parser = new ExpressionParser(excelFormula);
 
-            Expression x = parser.Parse();
-            System.Console.WriteLine($"Expression = `{x}`");
+            //Expression x = parser.Parse();
+            //System.Console.WriteLine($"Expression = `{x}`");
 
-            var o = x.Optimize();
+            //var o = x.Optimize();
 
-            System.Console.WriteLine($"Expression = `{o}`");
+            //System.Console.WriteLine($"Expression = `{o}`");
 
-            LambdaExpression le = Expression.Lambda(o);
+            //LambdaExpression le = Expression.Lambda(o);
 
-            var result = le.Compile().DynamicInvoke();
+            //var result = le.Compile().DynamicInvoke();
 
-            System.Console.WriteLine($"result = `{result}`");
+            //System.Console.WriteLine($"result = `{result}`");
 
-            var trunc2 = new ExcelFormula("=TRUNC(91.789, 2)");
-            System.Console.WriteLine("trunc2 = `{0}`", Expression.Lambda(new ExpressionParser(trunc2).Parse()).Compile().DynamicInvoke());
+            //var trunc2 = new ExcelFormula("=TRUNC(91.789, 2)");
+            //System.Console.WriteLine("trunc2 = `{0}`", Expression.Lambda(new ExpressionParser(trunc2).Parse()).Compile().DynamicInvoke());
 
-            var trunc0 = new ExcelFormula("=TRUNC(91.789)");
-            System.Console.WriteLine("trunc0 = `{0}`", Expression.Lambda(new ExpressionParser(trunc0).Parse()).Compile().DynamicInvoke());
+            //var trunc0 = new ExcelFormula("=TRUNC(91.789)");
+            //System.Console.WriteLine("trunc0 = `{0}`", Expression.Lambda(new ExpressionParser(trunc0).Parse()).Compile().DynamicInvoke());
 
-            var gt = new ExcelFormula("=1>2");
-            System.Console.WriteLine("gt = `{0}`", Expression.Lambda(new ExpressionParser(gt).Parse()).Compile().DynamicInvoke());
+            //var gt = new ExcelFormula("=1>2");
+            //System.Console.WriteLine("gt = `{0}`", Expression.Lambda(new ExpressionParser(gt).Parse()).Compile().DynamicInvoke());
 
-            var sum = new ExcelFormula("=SUM(1,2,3)");
-            System.Console.WriteLine("sum = `{0}`", Expression.Lambda(new ExpressionParser(sum).Parse()).Compile().DynamicInvoke());
+            //var sum = new ExcelFormula("=SUM(1,2,3)");
+            //System.Console.WriteLine("sum = `{0}`", Expression.Lambda(new ExpressionParser(sum).Parse()).Compile().DynamicInvoke());
+
+            var now = new ExcelFormula("=NOW()");
+            System.Console.WriteLine("{0} : `{1}`", now.Formula, Expression.Lambda(new ExpressionParser(now).Parse()).Compile().DynamicInvoke());
         }
     }
 }

@@ -215,7 +215,7 @@ namespace ExcelFormulaExpressionParser
 
                 int indent = 0;
                 var tokens = new List<ExcelFormulaToken>();
-                do
+                while (!(CT.Subtype == TokenSubtype.Stop && indent == 0))
                 {
                     if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
                     {
@@ -230,7 +230,8 @@ namespace ExcelFormulaExpressionParser
                     tokens.Add(CT);
 
                     Next();
-                } while (!(CT.Subtype == TokenSubtype.Stop && indent == 0));
+                }
+                //while (!(CT.Subtype == TokenSubtype.Stop && indent == 0));
 
                 Next();
                 var right = ParseRange();
@@ -268,7 +269,11 @@ namespace ExcelFormulaExpressionParser
             }
 
             var arguments = new List<object>();
-            AddToArgumentsList(arguments, Parse(tokens, context));
+
+            if (tokens.Any())
+            {
+                AddToArgumentsList(arguments, Parse(tokens, context));
+            }
 
             var expressions = arguments.Where(a => a is Expression).Cast<Expression>().ToArray();
             var xranges = arguments.Where(a => a is XRange).Cast<XRange>().ToArray();
