@@ -14,7 +14,7 @@ namespace ExcelFormulaExpressionParser.Tests
         public void OperandFunction_Date_Now()
         {
             // Assign
-            var now = DateTimeHelpers.ToOADate(DateTime.Now);
+            var now = DateTimeHelpers.ToOADate(DateTime.UtcNow.AddMilliseconds(-1));
             var formula = new ExcelFormula("=NOW()");
 
             // Act

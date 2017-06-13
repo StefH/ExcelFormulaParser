@@ -55,19 +55,6 @@ namespace ExcelFormulaExpressionParser
             _list = tokens;
             _context = context;
             _finder = finder;
-
-            foreach (var token in _list)
-            {
-                if (token.Type == TokenType.Subexpression)
-                {
-                    token.Type = TokenType.Function;
-
-                    if (token.Subtype == TokenSubtype.Start)
-                    {
-                        token.Value = "_";
-                    }
-                }
-            }
         }
 
         public Expression Parse()
@@ -208,7 +195,7 @@ namespace ExcelFormulaExpressionParser
         {
             Expression left = ParseRange();
 
-            while (CT.Type == TokenType.Function)
+            while (CT.Type == TokenType.Function || CT.Type == TokenType.Subexpression)
             {
                 var op = CT;
                 Next();
@@ -217,12 +204,12 @@ namespace ExcelFormulaExpressionParser
                 var tokens = new List<ExcelFormulaToken>();
                 while (!(CT.Subtype == TokenSubtype.Stop && indent == 0))
                 {
-                    if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Start)
+                    if (CT.Subtype == TokenSubtype.Start)
                     {
                         indent++;
                     }
 
-                    if (CT.Type == TokenType.Function && CT.Subtype == TokenSubtype.Stop)
+                    if (CT.Subtype == TokenSubtype.Stop)
                     {
                         indent--;
                     }
@@ -231,7 +218,6 @@ namespace ExcelFormulaExpressionParser
 
                     Next();
                 }
-                //while (!(CT.Subtype == TokenSubtype.Stop && indent == 0));
 
                 Next();
                 var right = ParseRange();
@@ -280,7 +266,7 @@ namespace ExcelFormulaExpressionParser
 
             switch (functionName)
             {
-                case "_": return expressions[0];
+                case "": return expressions[0];
                 case "ABS": return MathFunctions.Abs(expressions[0]);
                 case "AND": return LogicalFunctions.And(expressions);
                 case "COS": return MathFunctions.Cos(expressions[0]);
@@ -355,8 +341,6 @@ namespace ExcelFormulaExpressionParser
 
         private Expression ParseValue()
         {
-            Expression left = null;
-
             if (CT.Type == TokenType.Operand)
             {
                 if (CT.Subtype == TokenSubtype.Logical)
@@ -384,7 +368,7 @@ namespace ExcelFormulaExpressionParser
                 }
             }
 
-            return left;
+            return null;
         }
 
         private Expression Parse(IList<ExcelFormulaToken> tokens, ExcelFormulaContext context)

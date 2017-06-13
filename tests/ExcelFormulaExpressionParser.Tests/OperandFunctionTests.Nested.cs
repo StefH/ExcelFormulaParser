@@ -68,14 +68,14 @@ namespace ExcelFormulaExpressionParser.Tests
         public void OperandFunction_NestedSubexpressions2()
         {
             // Assign
-            var formula = new ExcelFormula("=(5 * (1 + 2))");
+            var formula = new ExcelFormula("=(5 * (1 + 2)) + (-1 * (-7 * -9))");
 
             // Act
             Expression expression = new ExpressionParser(formula).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
-            Check.That(result).IsEqualTo(15);
+            Check.That(result).IsEqualTo(-48);
         }
     }
 }
