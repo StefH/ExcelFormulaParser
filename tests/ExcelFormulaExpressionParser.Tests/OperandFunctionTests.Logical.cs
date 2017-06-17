@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Extensions;
+using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaParser;
 using Moq;
 using NFluent;
@@ -16,7 +17,7 @@ namespace ExcelFormulaExpressionParser.Tests
         {
             _context = new ExcelFormulaContext
             {
-                Sheet = "sheet1"
+                Sheet = new XSheet("sheet1")
             };
 
             _finder = new Mock<ICellFinder>();

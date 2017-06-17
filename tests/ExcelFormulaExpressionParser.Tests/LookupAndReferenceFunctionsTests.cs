@@ -4,8 +4,10 @@ using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaExpressionParser.Functions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaParser;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.EventHandlers;
 using NFluent;
 using Xunit;
+using Xunit.Sdk;
 
 namespace ExcelFormulaExpressionParser.Tests
 {
@@ -38,12 +40,25 @@ namespace ExcelFormulaExpressionParser.Tests
         }
 
         [Fact]
-        public void VLookup()
+        public void VLookup_Approximate_With_FALSE()
         {
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(2.1), _range, Expression.Constant(2));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(2.1), _range, Expression.Constant(2), Expression.Constant(true));
+            var result = resultExpression.LambdaInvoke<double>();
+
+            // Assert
+            Check.That(result).IsEqualTo(20.0);
+        }
+
+        [Fact]
+        public void VLookup_Approximate_With_1()
+        {
+            // Assign
+
+            // Act
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(2.1), _range, Expression.Constant(2), Expression.Constant(1));
             var result = resultExpression.LambdaInvoke<double>();
 
             // Assert
@@ -56,7 +71,7 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.0), _range, Expression.Constant(2), Expression.Constant(true));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.0), _range, Expression.Constant(2), Expression.Constant(false));
             var result = resultExpression.LambdaInvoke<double>();
 
             // Assert
@@ -69,7 +84,7 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.1), _range, Expression.Constant(2), Expression.Constant(true));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.1), _range, Expression.Constant(2), Expression.Constant(false));
             var result = resultExpression.LambdaInvoke<string>();
 
             // Assert

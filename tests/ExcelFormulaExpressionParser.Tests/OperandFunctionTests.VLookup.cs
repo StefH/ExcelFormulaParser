@@ -17,11 +17,11 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
             var range = CreateXRange();
 
-            _finder.Setup(f => f.Find(It.IsAny<string>(), "A10:B12")).Returns(range);
+            _finder.Setup(f => f.Find(It.IsAny<XSheet>(), "A10:B12")).Returns(range);
             var formula = new ExcelFormula("=VLOOKUP(2.1, A10:B12, 2)");
 
             // Act
-            Expression expression = new ExpressionParser(formula, _context, _finder.Object).Parse();
+            Expression expression = new ExpressionParser(formula, 0, _context, _finder.Object).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert
@@ -34,11 +34,11 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
             var range = CreateXRange();
 
-            _finder.Setup(f => f.Find(It.IsAny<string>(), "A10:B12")).Returns(range);
-            var formula = new ExcelFormula("=VLOOKUP(1.0, A10:B12, 2, TRUE)");
+            _finder.Setup(f => f.Find(It.IsAny<XSheet>(), "A10:B12")).Returns(range);
+            var formula = new ExcelFormula("=VLOOKUP(1.0, A10:B12, 2, FALSE)");
 
             // Act
-            Expression expression = new ExpressionParser(formula, _context, _finder.Object).Parse();
+            Expression expression = new ExpressionParser(formula, 0, _context, _finder.Object).Parse();
             var result = expression.LambdaInvoke<double>();
 
             // Assert

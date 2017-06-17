@@ -9,13 +9,22 @@ using ExcelFormulaExpressionParser.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Utilities;
 using System.Globalization;
+using System.Reflection;
+using log4net;
+using log4net.Config;
 
 namespace ExcelFormulaParser.Expressions.Console
 {
     class Program
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(Program));
+
         static void Main(string[] args)
         {
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+
+            Log.Info("Entering application.");
             Test();
             //CalcTest();
             //ExcelTest();
@@ -55,7 +64,7 @@ namespace ExcelFormulaParser.Expressions.Console
                 }
 
                 var calcCell = wb.Sheets[2].Rows[16].Cells[2];
-                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, wb);
+                var parser = new ExpressionParser(calcCell.ExcelFormula, 0, (ExcelFormulaContext)calcCell.ExcelFormula.Context, wb);
 
                 Expression x = parser.Parse();
                 System.Console.WriteLine($"Expression = `{x}`");

@@ -11,12 +11,16 @@ using JetBrains.Annotations;
 using TokenType = ExcelFormulaParser.ExcelFormulaTokenType;
 using TokenSubtype = ExcelFormulaParser.ExcelFormulaTokenSubtype;
 using ExcelFormulaExpressionParser.Expressions;
+using log4net;
 
 namespace ExcelFormulaExpressionParser
 {
     public class ExpressionParser
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(ExpressionParser));
+
         private int _index;
+        private int _level;
 
         private ExcelFormulaToken CT => _list[_index];
 
@@ -29,7 +33,19 @@ namespace ExcelFormulaExpressionParser
         /// </summary>
         /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
         public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens) :
-            this(tokens, null, (ICellFinder)null)
+            this(tokens, 0, null, (XWorkbook)null)
+        {
+        }
+
+        /// <summary>
+        /// ExpressionParser
+        /// </summary>
+        /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
+        /// <param name="level">The level (default 0).</param>
+        /// <param name="context">The ExcelFormulaContext. (Optional if no real Excel Workbook is parsed.)</param>
+        /// <param name="workbook">The Excel Workbook. (Optional if no real Excel Workbook is parsed.)</param>
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, int level, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] XWorkbook workbook = null) :
+            this(tokens, level, context, workbook != null ? new CellFinder(workbook) : null)
         {
         }
 
@@ -40,7 +56,7 @@ namespace ExcelFormulaExpressionParser
         /// <param name="context">The ExcelFormulaContext. (Optional if no real Excel Workbook is parsed.)</param>
         /// <param name="workbook">The Excel Workbook. (Optional if no real Excel Workbook is parsed.)</param>
         public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] XWorkbook workbook = null) :
-            this(tokens, context, workbook != null ? new CellFinder(workbook) : null)
+            this(tokens, 0, context, workbook != null ? new CellFinder(workbook) : null)
         {
         }
 
@@ -48,13 +64,17 @@ namespace ExcelFormulaExpressionParser
         /// ExpressionParser
         /// </summary>
         /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
+        /// <param name="level">The level (default 0).</param>
         /// <param name="context">The ExcelFormulaContext. (Optional if no real Excel Workbook is parsed.)</param>
         /// <param name="finder">The cellfinder to finds cells in a workbook. (Optional if no real Excel Workbook is parsed.)</param>
-        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] ICellFinder finder = null)
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, int level = 0, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] ICellFinder finder = null)
         {
             _list = tokens;
+            _level = level;
             _context = context;
             _finder = finder;
+
+            // Log.InfoFormat("Formula : '{0}', Sheet : '{1}'", GetFormula(), context != null ? context.Sheet.Name : "");
         }
 
         public Expression Parse()
@@ -62,6 +82,32 @@ namespace ExcelFormulaExpressionParser
             _index = 0;
 
             return ParseArgs();
+        }
+
+        private string GetFormula()
+        {
+            string formula = new string(' ', _level);
+            foreach (var token in _list)
+            {
+                if (token.Type == TokenType.Subexpression && token.Subtype == TokenSubtype.Start)
+                {
+                    formula += "(";
+                }
+                else if (token.Type == TokenType.Function && token.Subtype == TokenSubtype.Start)
+                {
+                    formula += token.Value + "(";
+                }
+                else if (token.Subtype == TokenSubtype.Stop)
+                {
+                    formula += ")";
+                }
+                else
+                {
+                    formula += token.Value;
+                }
+            }
+
+            return formula;
         }
 
         private void Next()
@@ -105,7 +151,7 @@ namespace ExcelFormulaExpressionParser
             {
                 var op = CT;
                 Next();
-                Expression right = ParseMultiplication();
+                Expression right = Expression.Convert(ParseMultiplication(), typeof(double));
 
                 switch (op.Value)
                 {
@@ -276,6 +322,7 @@ namespace ExcelFormulaExpressionParser
                 case "EOMONTH": return DateFunctions.EndOfMonth(expressions[0], expressions[1]);
                 case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
                 case "MAX": return MathFunctions.Max(expressions[0], expressions[1]);
+                case "MIN": return MathFunctions.Min(expressions[0], expressions[1]);
                 case "MONTH": return DateFunctions.Month(expressions[0]);
                 case "NOW": return DateFunctions.Now();
                 case "OR": return LogicalFunctions.Or(expressions);
@@ -288,6 +335,7 @@ namespace ExcelFormulaExpressionParser
                 case "TRUNC": return MathFunctions.Trunc(expressions);
                 case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
                 case "YEAR": return DateFunctions.Year(expressions[0]);
+                case "YEARFRAC": return DateFunctions.YearFrac(expressions[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
 
                 default:
                     throw new NotImplementedException(functionName);
@@ -382,7 +430,7 @@ namespace ExcelFormulaExpressionParser
                 return null;
             }
 
-            return new ExpressionParser(tokens, context, _finder).Parse();
+            return new ExpressionParser(tokens, _level + 1, context, _finder).Parse();
         }
     }
 }

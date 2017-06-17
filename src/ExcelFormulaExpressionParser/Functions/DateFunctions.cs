@@ -60,6 +60,29 @@ namespace ExcelFormulaExpressionParser.Functions
             return Expression.Constant((double)Invoke(expression).Year);
         }
 
+        public static Expression YearFrac(Expression startYearExpression, Expression endYearExpression, Expression basisExpression = null)
+        {
+            DateTime date1 = Invoke(startYearExpression);
+            DateTime date2 = Invoke(startYearExpression);
+
+            // int basis = basisExpression?.LambdaInvoke<int>() ?? 0 ;
+
+            return Expression.Constant(GetDayCount(date1, date2));
+        }
+
+
+        public static double GetDayCount(DateTime startDate, DateTime endDate)
+        {
+            if (startDate > endDate)
+            {
+                var t = startDate;
+                startDate = endDate;
+                endDate = t;
+            }
+
+            return (endDate - startDate).TotalDays / 360.0;
+        }
+
         private static DateTime Invoke(Expression expression)
         {
             double value = expression.LambdaInvoke<double>();
