@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net20;net452;netstandard1.0</TargetFrameworks>
+    <VersionPrefix>1.0.2.0</VersionPrefix>
+    <Authors>E. W. Bachtal;Stef Heyenrath</Authors>
+    <Copyright>E. W. Bachtal</Copyright>
+    <ApplicationIcon>../../Images/Excel.ico</ApplicationIcon>
+    <Company>ewbi.com</Company>
+    <Description>A library to parse Excel formulas</Description>
+    <RepositoryUrl>https://github.com/StefH/ExcelFormulaParser</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>excel;formula;parser</PackageTags>
+    <PackageReleaseNotes>Fix for parsing double numbers.</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/StefH/ExcelFormulaParser</PackageProjectUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/LICENSE</PackageLicenseUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/StefH/ExcelFormulaParser/master/Images/Excel_64x64.png</PackageIconUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net20' ">
+    <PackageReference Include="JetBrains.Annotations" Version="9.2.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net20' ">
+    <PackageReference Include="JetBrains.Annotations" Version="10.4.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

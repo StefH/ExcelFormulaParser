@@ -1,0 +1,72 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BCA71646-7799-4A23-9279-18C87E785645}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{26813EB3-A699-43E2-BA62-602FC8F0E9B2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelFormulaParser", "src\ExcelFormulaParser\ExcelFormulaParser.csproj", "{53490EAA-4A87-43E6-9A3F-A6E8891CE152}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelFormulaParserSample", "examples\ExcelFormulaParserSample\ExcelFormulaParserSample.csproj", "{D05ECA40-6315-4339-BC32-8E922981218D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution", "_Solution", "{95BDEA56-0346-4DC0-B2E2-E39E55D9CEFB}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{08EB3110-9DD0-42AF-87FC-6AB911DBC9F4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelFormulaParser.Tests", "tests\ExcelFormulaParser.Tests\ExcelFormulaParser.Tests.csproj", "{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelFormulaParser.Expressions.Console", "examples\ExcelFormulaParser.Expressions.Console\ExcelFormulaParser.Expressions.Console.csproj", "{4B2CC684-5281-43E2-A29C-04252381531B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelFormulaExpressionParser", "src\ExcelFormulaExpressionParser\ExcelFormulaExpressionParser.csproj", "{935AF390-A30A-495A-BD54-730A0F012358}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelFormulaExpressionParser.Tests", "tests\ExcelFormulaExpressionParser.Tests\ExcelFormulaExpressionParser.Tests.csproj", "{DAF7A07A-C12F-4A33-83CF-F27703987C8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{53490EAA-4A87-43E6-9A3F-A6E8891CE152}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53490EAA-4A87-43E6-9A3F-A6E8891CE152}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53490EAA-4A87-43E6-9A3F-A6E8891CE152}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53490EAA-4A87-43E6-9A3F-A6E8891CE152}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D05ECA40-6315-4339-BC32-8E922981218D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D05ECA40-6315-4339-BC32-8E922981218D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D05ECA40-6315-4339-BC32-8E922981218D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D05ECA40-6315-4339-BC32-8E922981218D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B2CC684-5281-43E2-A29C-04252381531B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{935AF390-A30A-495A-BD54-730A0F012358}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{935AF390-A30A-495A-BD54-730A0F012358}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{935AF390-A30A-495A-BD54-730A0F012358}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{935AF390-A30A-495A-BD54-730A0F012358}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAF7A07A-C12F-4A33-83CF-F27703987C8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAF7A07A-C12F-4A33-83CF-F27703987C8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAF7A07A-C12F-4A33-83CF-F27703987C8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAF7A07A-C12F-4A33-83CF-F27703987C8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{53490EAA-4A87-43E6-9A3F-A6E8891CE152} = {BCA71646-7799-4A23-9279-18C87E785645}
+		{D05ECA40-6315-4339-BC32-8E922981218D} = {26813EB3-A699-43E2-BA62-602FC8F0E9B2}
+		{DBC87F72-9E61-47DE-BB8C-35018DD9E9CA} = {08EB3110-9DD0-42AF-87FC-6AB911DBC9F4}
+		{4B2CC684-5281-43E2-A29C-04252381531B} = {26813EB3-A699-43E2-BA62-602FC8F0E9B2}
+		{935AF390-A30A-495A-BD54-730A0F012358} = {BCA71646-7799-4A23-9279-18C87E785645}
+		{DAF7A07A-C12F-4A33-83CF-F27703987C8A} = {08EB3110-9DD0-42AF-87FC-6AB911DBC9F4}
+	EndGlobalSection
+EndGlobal
