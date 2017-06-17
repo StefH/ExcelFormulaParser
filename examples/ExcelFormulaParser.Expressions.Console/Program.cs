@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -26,7 +25,8 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             using (var package = new ExcelPackage(new FileInfo("c:\\temp\\test.xlsx")))
             {
-                var sheets = new List<XSheet>();
+                var wb = new XWorkbook();
+
                 foreach (var worksheet in package.Workbook.Worksheets)
                 {
                     var sheet = new XSheet(worksheet.Name);
@@ -39,17 +39,23 @@ namespace ExcelFormulaParser.Expressions.Console
                         var xrow = new XRow(sheet, r);
                         for (int c = 1; c <= endCell.Column; c++)
                         {
-                            xrow.Cells.Add(ToXCell(xrow, worksheet.Cells[r, c]));
+                            xrow.Cells.Add(ToXCell(sheet, xrow, worksheet.Cells[r, c]));
                         }
 
                         sheet.Rows.Add(xrow);
                     }
 
-                    sheets.Add(sheet);
+                    wb.Sheets.Add(sheet);
                 }
 
-                var calcCell = sheets[2].Rows[16].Cells[2];
-                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, sheets);
+                var names = package.Workbook.Names;
+                foreach (var name in names)
+                {
+                    wb.Names.Add(name.Name, name.Address);
+                }
+
+                var calcCell = wb.Sheets[2].Rows[16].Cells[2];
+                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, wb);
 
                 Expression x = parser.Parse();
                 System.Console.WriteLine($"Expression = `{x}`");
@@ -68,33 +74,39 @@ namespace ExcelFormulaParser.Expressions.Console
         {
             using (var package = new ExcelPackage(new FileInfo("Book.xlsx")))
             {
+                var wb = new XWorkbook();
+
                 package.Workbook.Worksheets[1].Cells["B1"].Value = 77;
 
-                var sheets = new List<XSheet>();
                 foreach (var worksheet in package.Workbook.Worksheets)
                 {
                     var sheet = new XSheet(worksheet.Name);
 
                     // Obtain the worksheet size 
-                    ExcelCellAddress startCell = worksheet.Dimension.Start;
                     ExcelCellAddress endCell = worksheet.Dimension.End;
 
-                    for (int r = startCell.Row; r <= endCell.Row; r++)
+                    for (int r = 1; r <= endCell.Row; r++)
                     {
                         var xrow = new XRow(sheet, r);
-                        for (int c = startCell.Column; c <= endCell.Column; c++)
+                        for (int c = 1; c <= endCell.Column; c++)
                         {
-                            xrow.Cells.Add(ToXCell(xrow, worksheet.Cells[r, c]));
+                            xrow.Cells.Add(ToXCell(sheet, xrow, worksheet.Cells[r, c]));
                         }
 
                         sheet.Rows.Add(xrow);
                     }
 
-                    sheets.Add(sheet);
+                    wb.Sheets.Add(sheet);
                 }
 
-                var calcCell = sheets[0].Rows[3].Cells[1];
-                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, sheets);
+                var names = package.Workbook.Names;
+                foreach (var name in names)
+                {
+                    wb.Names.Add(name.Name, name.Address);
+                }
+
+                var calcCell = wb.Sheets[0].Rows[3].Cells[1];
+                var parser = new ExpressionParser(calcCell.ExcelFormula, (ExcelFormulaContext)calcCell.ExcelFormula.Context, wb);
 
                 Expression x = parser.Parse();
                 System.Console.WriteLine($"Expression = `{x}`");
@@ -109,8 +121,8 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 System.Console.WriteLine($"result = `{result}`");
 
-                var bool2 = sheets[0].Rows[4].Cells[1];
-                var boolParser = new ExpressionParser(bool2.ExcelFormula, (ExcelFormulaContext)bool2.ExcelFormula.Context, sheets);
+                var bool2 = wb.Sheets[0].Rows[4].Cells[1];
+                var boolParser = new ExpressionParser(bool2.ExcelFormula, (ExcelFormulaContext)bool2.ExcelFormula.Context, wb);
 
                 Expression bx = boolParser.Parse();
                 System.Console.WriteLine($"Expression = `{bx}`");
@@ -123,8 +135,8 @@ namespace ExcelFormulaParser.Expressions.Console
                 System.Console.WriteLine($"bresult = `{bresult}`");
 
 
-                var sum = sheets[0].Rows[6].Cells[1];
-                var sumParser = new ExpressionParser(sum.ExcelFormula, (ExcelFormulaContext)sum.ExcelFormula.Context, sheets);
+                var sum = wb.Sheets[0].Rows[6].Cells[1];
+                var sumParser = new ExpressionParser(sum.ExcelFormula, (ExcelFormulaContext)sum.ExcelFormula.Context, wb);
 
                 Expression sumE = sumParser.Parse();
                 System.Console.WriteLine($"Expression = `{sumE}`");
@@ -137,8 +149,8 @@ namespace ExcelFormulaParser.Expressions.Console
                 System.Console.WriteLine($"sumresult = `{sumresult}`");
 
 
-                var sumSqrt = sheets[3].Rows[0].Cells[1];
-                var sumSqrtParser = new ExpressionParser(sumSqrt.ExcelFormula, (ExcelFormulaContext)sumSqrt.ExcelFormula.Context, sheets);
+                var sumSqrt = wb.Sheets[3].Rows[0].Cells[1];
+                var sumSqrtParser = new ExpressionParser(sumSqrt.ExcelFormula, (ExcelFormulaContext)sumSqrt.ExcelFormula.Context, wb);
 
                 Expression sumSqrtE = sumSqrtParser.Parse();
                 //System.Console.WriteLine($"Expression = `{sumSqrtE}`");
@@ -151,8 +163,8 @@ namespace ExcelFormulaParser.Expressions.Console
                 System.Console.WriteLine($"sumresult = `{sumSqrtresult}`");
 
 
-                var dateyear = sheets[0].Rows[7].Cells[2];
-                var dateyearParser = new ExpressionParser(dateyear.ExcelFormula, (ExcelFormulaContext)dateyear.ExcelFormula.Context, sheets);
+                var dateyear = wb.Sheets[0].Rows[7].Cells[2];
+                var dateyearParser = new ExpressionParser(dateyear.ExcelFormula, (ExcelFormulaContext)dateyear.ExcelFormula.Context, wb);
 
                 Expression dateyearE = dateyearParser.Parse();
                 //System.Console.WriteLine($"Expression = `{sumSqrtE}`");
@@ -164,26 +176,32 @@ namespace ExcelFormulaParser.Expressions.Console
                 var dateyearResult = Expression.Lambda(dateyearO).Compile().DynamicInvoke();
                 System.Console.WriteLine($"dateyearResult = `{dateyearResult}`");
 
-                var dateyearnow = sheets[0].Rows[8].Cells[2];
-                var dateyearnowParser = new ExpressionParser(dateyearnow.ExcelFormula, (ExcelFormulaContext)dateyearnow.ExcelFormula.Context, sheets);
+                var dateyearnow = wb.Sheets[0].Rows[8].Cells[2];
+                var dateyearnowParser = new ExpressionParser(dateyearnow.ExcelFormula, (ExcelFormulaContext)dateyearnow.ExcelFormula.Context, wb);
 
                 var dateyearnowResult = dateyearnowParser.Parse().LambdaInvoke<double>();
                 System.Console.WriteLine($"dateyearnowResult = `{dateyearnowResult}`");
 
-                var named = sheets[0].Rows[9].Cells[1];
-                var namedParser = new ExpressionParser(named.ExcelFormula, (ExcelFormulaContext)named.ExcelFormula.Context, sheets);
+                var named1 = wb.Sheets[0].Rows[9].Cells[1];
+                var namedParser1 = new ExpressionParser(named1.ExcelFormula, (ExcelFormulaContext)named1.ExcelFormula.Context, wb);
 
-                var namedResult = namedParser.Parse().LambdaInvoke<double>();
-                System.Console.WriteLine($"namedResult = `{namedResult}`");
+                var namedResult1 = namedParser1.Parse().LambdaInvoke<double>();
+                System.Console.WriteLine($"namedResult1 = `{namedResult1}`");
+
+                var named2 = wb.Sheets[0].Rows[10].Cells[1];
+                var namedParser2 = new ExpressionParser(named2.ExcelFormula, (ExcelFormulaContext)named2.ExcelFormula.Context, wb);
+
+                var namedResult2 = namedParser2.Parse().LambdaInvoke<double>();
+                System.Console.WriteLine($"namedResult2 = `{namedResult2}`");
 
 
-                var vlookup = sheets[3].Rows[0].Cells[4];
-                var vlookupParser = new ExpressionParser(vlookup.ExcelFormula, (ExcelFormulaContext)vlookup.ExcelFormula.Context, sheets);
+                var vlookup = wb.Sheets[3].Rows[0].Cells[4];
+                var vlookupParser = new ExpressionParser(vlookup.ExcelFormula, (ExcelFormulaContext)vlookup.ExcelFormula.Context, wb);
                 var vlookupResult = vlookupParser.Parse().LambdaInvoke<double>();
                 System.Console.WriteLine($"vlookupResult = `{vlookupResult}`");
 
-                var vlookup2 = sheets[3].Rows[1].Cells[4];
-                var vlookupParser2 = new ExpressionParser(vlookup2.ExcelFormula, (ExcelFormulaContext)vlookup2.ExcelFormula.Context, sheets);
+                var vlookup2 = wb.Sheets[3].Rows[1].Cells[4];
+                var vlookupParser2 = new ExpressionParser(vlookup2.ExcelFormula, (ExcelFormulaContext)vlookup2.ExcelFormula.Context, wb);
                 var vlookupResult2 = vlookupParser2.Parse().LambdaInvoke<double>();
                 System.Console.WriteLine($"vlookupResult2 = `{vlookupResult2}`");
 
@@ -191,7 +209,7 @@ namespace ExcelFormulaParser.Expressions.Console
             }
         }
 
-        private static XCell ToXCell(XRow row, ExcelRange range)
+        private static XCell ToXCell(XSheet sheet, XRow row, ExcelRange range)
         {
             var cell = new XCell(row, range.Address)
             {
@@ -200,7 +218,7 @@ namespace ExcelFormulaParser.Expressions.Console
 
             var context = new ExcelFormulaContext
             {
-                Sheet = range.Worksheet.Name
+                Sheet = sheet
             };
 
             if (!string.IsNullOrEmpty(range.Formula))
@@ -223,7 +241,7 @@ namespace ExcelFormulaParser.Expressions.Console
                 }
                 else if (range.Value is DateTime)
                 {
-                    double value = DateTimeHelpers.ToOADate((DateTime) range.Value);
+                    double value = DateTimeHelpers.ToOADate((DateTime)range.Value);
                     cell.ExcelFormula = new ExcelFormula("=" + value.ToString(CultureInfo.InvariantCulture), context);
                 }
                 else if (range.Value.IsNumeric())

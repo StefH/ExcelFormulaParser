@@ -4,6 +4,6 @@ namespace ExcelFormulaExpressionParser
 {
     public interface ICellFinder
     {
-        XRange Find(string sheetName, string address);
+        XRange Find(XSheet sheet, string address);
     }
 }

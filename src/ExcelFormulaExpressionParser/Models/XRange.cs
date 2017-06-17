@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace ExcelFormulaExpressionParser.Models
+﻿namespace ExcelFormulaExpressionParser.Models
 {
     public class XRange
     {

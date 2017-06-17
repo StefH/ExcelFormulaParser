@@ -38,9 +38,9 @@ namespace ExcelFormulaExpressionParser
         /// </summary>
         /// <param name="tokens">The ExcelFormula or a list from ExcelFormulaTokens.</param>
         /// <param name="context">The ExcelFormulaContext. (Optional if no real Excel Workbook is parsed.)</param>
-        /// <param name="sheets">The XSheets from a Excel Workbook. (Optional if no real Excel Workbook is parsed.)</param>
-        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] List<XSheet> sheets = null) :
-            this(tokens, context, sheets != null ? new CellFinder(sheets) : null)
+        /// <param name="workbook">The Excel Workbook. (Optional if no real Excel Workbook is parsed.)</param>
+        public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] XWorkbook workbook = null) :
+            this(tokens, context, workbook != null ? new CellFinder(workbook) : null)
         {
         }
 
@@ -272,6 +272,7 @@ namespace ExcelFormulaExpressionParser
                 case "COS": return MathFunctions.Cos(expressions[0]);
                 case "DATE": return DateFunctions.Date(expressions[0], expressions[1], expressions[2]);
                 case "DAY": return DateFunctions.Day(expressions[0]);
+                case "EDATE": return DateFunctions.EDate(expressions[0], expressions[1]);
                 case "EOMONTH": return DateFunctions.EndOfMonth(expressions[0], expressions[1]);
                 case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
                 case "MAX": return MathFunctions.Max(expressions[0], expressions[1]);
@@ -330,7 +331,7 @@ namespace ExcelFormulaExpressionParser
                     var xrange = _finder.Find(_context.Sheet, op.Value);
                     foreach (var cell in xrange.Cells)
                     {
-                        cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet.Name });
+                        cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
                     }
 
                     return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : XRangeExpression.Create(xrange);

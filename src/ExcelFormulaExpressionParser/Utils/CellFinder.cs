@@ -1,20 +1,27 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using ExcelFormulaExpressionParser.Models;
 
 namespace ExcelFormulaExpressionParser.Utils
 {
     internal class CellFinder : ICellFinder
     {
-        private readonly List<XSheet> _sheets;
+        private readonly XWorkbook _workbook;
 
-        public CellFinder(List<XSheet> sheets)
+        private readonly bool _hasNames;
+
+        public CellFinder(XWorkbook workbook)
         {
-            _sheets = sheets;
+            _workbook = workbook;
+            _hasNames = workbook.Names.Count > 0;
         }
 
-        public XRange Find(string sheetName, string address)
+        public XRange Find(XSheet sheet, string address)
         {
+            if (_hasNames && _workbook.Names.ContainsKey(address))
+            {
+                address = _workbook.Names[address];
+            }
+
             address = address.Replace("$", "");
 
             var range = new XRange();
@@ -24,13 +31,13 @@ namespace ExcelFormulaExpressionParser.Utils
                 if (!address.Contains('!'))
                 {
                     // Same sheet
-                    range.Sheet = _sheets.First(s => s.Name == sheetName);
+                    range.Sheet = _workbook.Sheets.First(s => s.Name == sheet.Name);
                 }
                 else
                 {
                     // Other sheet
                     string[] parts = address.Split('!');
-                    range.Sheet = _sheets.First(s => s.Name == parts[0]);
+                    range.Sheet = _workbook.Sheets.First(s => s.Name == parts[0]);
                     address = parts[1];
                 }
 
@@ -39,25 +46,25 @@ namespace ExcelFormulaExpressionParser.Utils
             }
             else
             {
-                string[] partsRange = address.Split(':');
-
+                string[] partsRange;
                 if (!address.Contains('!'))
                 {
                     // Same sheet
-                    range.Sheet = _sheets.First(s => s.Name == sheetName);
-                    range.Start = ExcelUtils.ParseExcelAddress(partsRange[0]);
-                    range.End = ExcelUtils.ParseExcelAddress(partsRange[1]);
+                    partsRange = address.Split(':');
+                    range.Sheet = _workbook.Sheets.First(s => s.Name == sheet.Name);
                 }
                 else
                 {
                     // Other sheet
-                    string[] partsStart = partsRange[0].Split('!');
-                    string[] partEnd = partsRange[1].Split('!');
+                    string[] parts = address.Split('!');
+                    range.Sheet = _workbook.Sheets.First(s => s.Name == parts[0]);
+                    address = parts[1];
 
-                    range.Sheet = _sheets.First(s => s.Name == partsStart[0]);
-                    range.Start = ExcelUtils.ParseExcelAddress(partsStart[1]);
-                    range.End = ExcelUtils.ParseExcelAddress(partEnd[1]);
+                    partsRange = address.Split(':');
                 }
+
+                range.Start = ExcelUtils.ParseExcelAddress(partsRange[0]);
+                range.End = ExcelUtils.ParseExcelAddress(partsRange[1]);
             }
 
             var rows = range.Sheet.Rows.GetRange(range.Start.Row - 1, range.End.Row - range.Start.Row + 1);
