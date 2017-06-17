@@ -22,9 +22,19 @@ namespace ExcelFormulaExpressionParser.Functions
             return Expression.Constant((double)Invoke(expression).Day);
         }
 
+        public static Expression EndOfMonth(Expression dateExpression, Expression monthExpression)
+        {
+            DateTime date = Invoke(dateExpression);
+            int month = monthExpression.LambdaInvoke<int>();
+
+            var endofMonthDate = new DateTime(date.Year, date.Month, 1).AddMonths(month + 1).AddDays(-1);
+
+            return Expression.Constant(DateTimeHelpers.ToOADate(endofMonthDate));
+        }
+
         public static Expression Month(Expression expression)
         {
-            return Expression.Constant((double) Invoke(expression).Month);
+            return Expression.Constant((double)Invoke(expression).Month);
         }
 
         public static Expression Now()
@@ -32,9 +42,14 @@ namespace ExcelFormulaExpressionParser.Functions
             return Expression.Constant(DateTimeHelpers.ToOADate(DateTime.UtcNow));
         }
 
+        public static Expression Today()
+        {
+            return Expression.Constant(DateTimeHelpers.ToOADate(DateTime.UtcNow.Date));
+        }
+
         public static Expression Year(Expression expression)
         {
-            return Expression.Constant((double) Invoke(expression).Year);
+            return Expression.Constant((double)Invoke(expression).Year);
         }
 
         private static DateTime Invoke(Expression expression)

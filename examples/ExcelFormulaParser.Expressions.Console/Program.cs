@@ -17,9 +17,9 @@ namespace ExcelFormulaParser.Expressions.Console
     {
         static void Main(string[] args)
         {
-            //Test();
+            Test();
             //CalcTest();
-            ExcelTest();
+            //ExcelTest();
         }
 
         private static void Test()
@@ -32,13 +32,12 @@ namespace ExcelFormulaParser.Expressions.Console
                     var sheet = new XSheet(worksheet.Name);
 
                     // Obtain the worksheet size 
-                    ExcelCellAddress startCell = worksheet.Dimension.Start;
                     ExcelCellAddress endCell = worksheet.Dimension.End;
 
-                    for (int r = startCell.Row; r <= endCell.Row; r++)
+                    for (int r = 1; r <= endCell.Row; r++)
                     {
                         var xrow = new XRow(sheet, r);
-                        for (int c = startCell.Column; c <= endCell.Column; c++)
+                        for (int c = 1; c <= endCell.Column; c++)
                         {
                             xrow.Cells.Add(ToXCell(xrow, worksheet.Cells[r, c]));
                         }

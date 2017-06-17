@@ -20,6 +20,11 @@ namespace ExcelFormulaExpressionParser.Functions
             return Expression.Call(null, typeof(Math).FindMethod("Cos", new[] { typeof(double) }), value);
         }
 
+        public static Expression Max(Expression value1, Expression value2)
+        {
+            return Expression.Call(null, typeof(Math).FindMethod("Max", new[] { typeof(double), typeof(double) }), value1, value2);
+        }
+
         public static Expression Power(Expression number, Expression power)
         {
             return Expression.Power(number, power);

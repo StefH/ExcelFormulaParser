@@ -15,6 +15,8 @@ namespace ExcelFormulaExpressionParser.Utils
 
         public XRange Find(string sheetName, string address)
         {
+            address = address.Replace("$", "");
+
             var range = new XRange();
 
             if (!address.Contains(':'))

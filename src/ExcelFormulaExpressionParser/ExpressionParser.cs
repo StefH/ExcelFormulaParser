@@ -193,7 +193,7 @@ namespace ExcelFormulaExpressionParser
         // =ROUND(-3 * ROUND(1.001 * 2, 1) + 7.001, 1) + 11
         private Expression ParseFunction()
         {
-            Expression left = ParseRange();
+            Expression left = ParseOperatorPrefix();
 
             while (CT.Type == TokenType.Function || CT.Type == TokenType.Subexpression)
             {
@@ -220,7 +220,7 @@ namespace ExcelFormulaExpressionParser
                 }
 
                 Next();
-                var right = ParseRange();
+                var right = ParseOperatorPrefix();
 
                 // If there is more to be done (right != null), return right, else return the value from this function.
                 return right ?? ParseFunctionWithArgs(op.Value, tokens, _context);
@@ -272,7 +272,9 @@ namespace ExcelFormulaExpressionParser
                 case "COS": return MathFunctions.Cos(expressions[0]);
                 case "DATE": return DateFunctions.Date(expressions[0], expressions[1], expressions[2]);
                 case "DAY": return DateFunctions.Day(expressions[0]);
+                case "EOMONTH": return DateFunctions.EndOfMonth(expressions[0], expressions[1]);
                 case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
+                case "MAX": return MathFunctions.Max(expressions[0], expressions[1]);
                 case "MONTH": return DateFunctions.Month(expressions[0]);
                 case "NOW": return DateFunctions.Now();
                 case "OR": return LogicalFunctions.Or(expressions);
@@ -281,6 +283,7 @@ namespace ExcelFormulaExpressionParser
                 case "SIN": return MathFunctions.Sin(expressions[0]);
                 case "SQRT": return MathFunctions.Sqrt(expressions[0]);
                 case "SUM": return MathFunctions.Sum(expressions, xranges);
+                case "TODAY": return DateFunctions.Today();
                 case "TRUNC": return MathFunctions.Trunc(expressions);
                 case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
                 case "YEAR": return DateFunctions.Year(expressions[0]);
@@ -290,9 +293,32 @@ namespace ExcelFormulaExpressionParser
             }
         }
 
+        // -
+        private Expression ParseOperatorPrefix()
+        {
+            Expression left = ParseRange();
+
+            while (CT.Type == TokenType.OperatorPrefix && CT.Value == "-")
+            {
+                var op = CT;
+                Next();
+                Expression right = ParseRange();
+
+                switch (op.Value)
+                {
+                    case "-":
+                        return Expression.Negate(right);
+                    default:
+                        throw new NotSupportedException(op.Value);
+                }
+            }
+
+            return left;
+        }
+
         private Expression ParseRange()
         {
-            Expression left = ParseOperatorPrefix();
+            Expression left = ParseValue();
 
             if (CT.Type == TokenType.Operand && CT.Subtype == TokenSubtype.Range)
             {
@@ -304,36 +330,13 @@ namespace ExcelFormulaExpressionParser
                     var xrange = _finder.Find(_context.Sheet, op.Value);
                     foreach (var cell in xrange.Cells)
                     {
-                        cell.Expression = Parse(cell.ExcelFormula, _context);
+                        cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet.Name });
                     }
 
                     return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : XRangeExpression.Create(xrange);
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");
-            }
-
-            return left;
-        }
-
-        // -
-        private Expression ParseOperatorPrefix()
-        {
-            Expression left = ParseValue();
-
-            while (CT.Type == TokenType.OperatorPrefix && CT.Value == "-")
-            {
-                var op = CT;
-                Next();
-                Expression right = ParseValue();
-
-                switch (op.Value)
-                {
-                    case "-":
-                        return Expression.Negate(right);
-                    default:
-                        throw new NotSupportedException(op.Value);
-                }
             }
 
             return left;
