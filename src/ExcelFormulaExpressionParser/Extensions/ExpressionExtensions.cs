@@ -20,5 +20,11 @@ namespace ExcelFormulaExpressionParser.Extensions
 
             return (T)Convert.ChangeType(value, typeof(T));
         }
+
+        public static Expression LambdaInvoke(this Expression expression)
+        {
+            var value = Expression.Lambda(expression).Compile().DynamicInvoke();
+            return Expression.Constant(value);
+        }
     }
 }

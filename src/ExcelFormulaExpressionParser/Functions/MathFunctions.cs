@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using ExcelFormulaExpressionParser.Compatibility;
 using ExcelFormulaExpressionParser.Constants;
+using ExcelFormulaExpressionParser.Extensions;
 using ExcelFormulaExpressionParser.Models;
 
 namespace ExcelFormulaExpressionParser.Functions
@@ -77,6 +79,37 @@ namespace ExcelFormulaExpressionParser.Functions
             Expression truncate = Expression.Call(null, truncateMethod, first);
 
             return Expression.Divide(truncate, Power(MathConstants.Constant10, digits));
+        }
+
+        public static Expression ToDouble(Expression value)
+        {
+            if (value == null)
+            {
+                return MathConstants.Constant0;
+            }
+
+            if (value.Type == typeof(double))
+            {
+                return value;
+            }
+
+            if (value.Type.IsNumeric())
+            {
+                return Expression.Convert(value, typeof(double));
+            }
+
+            if (value.Type == typeof(bool))
+            {
+                return Expression.Condition(value, MathConstants.Constant1, MathConstants.Constant0);
+            }
+
+            if (value.Type == typeof(string))
+            {
+                string text = value.LambdaInvoke<string>();
+                return Expression.Constant(double.Parse(text, NumberStyles.Any, CultureInfo.InvariantCulture));
+            }
+
+            throw new NotSupportedException(value.ToString());
         }
 
         public static Expression ToInt(Expression value)

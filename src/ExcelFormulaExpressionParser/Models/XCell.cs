@@ -24,12 +24,12 @@ namespace ExcelFormulaExpressionParser.Models
 
         public XRow XRow { get; }
 
-        public XCell(XRow xRow, string addres)
+        public XCell(XRow xRow, string address)
         {
             XRow = xRow;
-            Address = addres;
+            Address = address;
 
-            Column = ExcelUtils.GetExcelColumnNumber(addres);
+            Column = ExcelUtils.GetExcelColumnNumber(address);
             Row = xRow.Row;
         }
     }

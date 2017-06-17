@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using ExcelFormulaExpressionParser.Functions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaExpressionParser.Utils;
@@ -151,7 +152,10 @@ namespace ExcelFormulaExpressionParser
             {
                 var op = CT;
                 Next();
-                Expression right = Expression.Convert(ParseMultiplication(), typeof(double));
+                Expression right = ParseMultiplication();
+
+                left = MathFunctions.ToDouble(left);
+                right = MathFunctions.ToDouble(right);
 
                 switch (op.Value)
                 {
@@ -177,6 +181,9 @@ namespace ExcelFormulaExpressionParser
                 var op = CT;
                 Next();
                 Expression right = ParseLogical();
+
+                left = MathFunctions.ToDouble(left);
+                right = MathFunctions.ToDouble(right);
 
                 switch (op.Value)
                 {
@@ -321,6 +328,7 @@ namespace ExcelFormulaExpressionParser
                 case "EDATE": return DateFunctions.EDate(expressions[0], expressions[1]);
                 case "EOMONTH": return DateFunctions.EndOfMonth(expressions[0], expressions[1]);
                 case "IF": return Expression.Condition(expressions[0], expressions[1], expressions[2]);
+                case "LEFT": return TextFunctions.Left(expressions[0], expressions.Length == 2 ? expressions[1] : null);
                 case "MAX": return MathFunctions.Max(expressions[0], expressions[1]);
                 case "MIN": return MathFunctions.Min(expressions[0], expressions[1]);
                 case "MONTH": return DateFunctions.Month(expressions[0]);
@@ -377,10 +385,16 @@ namespace ExcelFormulaExpressionParser
                 if (_finder != null)
                 {
                     var xrange = _finder.Find(_context.Sheet, op.Value);
-                    foreach (var cell in xrange.Cells)
+
+                    var cells = xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null).ToArray();
+                    Parallel.ForEach(cells, cell =>
                     {
                         cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
-                    }
+                    });
+                    //foreach (var cell in xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null))
+                    //{
+                    //    cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
+                    //}
 
                     return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : XRangeExpression.Create(xrange);
                 }

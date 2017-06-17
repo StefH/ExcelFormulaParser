@@ -19,7 +19,7 @@ namespace ExcelFormulaExpressionParser.Functions
             }
             else
             {
-                approximateMatch = Convert.ToBoolean((double)matchmode);
+                approximateMatch = Convert.ToBoolean(matchmode);
             }
 
             foreach (var keyCell in range.Cells.Where(c => c.Column == range.Start.Column))

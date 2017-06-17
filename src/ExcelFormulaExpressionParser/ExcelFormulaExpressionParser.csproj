@@ -31,5 +31,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ExcelFormulaParser\ExcelFormulaParser.csproj" />
   </ItemGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <PackageReference Include="System.Threading.Tasks.Parallel">
+      <Version>4.3.0</Version>
+    </PackageReference>
+  </ItemGroup>
 
 </Project>

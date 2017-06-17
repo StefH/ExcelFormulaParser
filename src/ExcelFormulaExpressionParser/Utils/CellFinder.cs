@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using ExcelFormulaExpressionParser.Models;
 
 namespace ExcelFormulaExpressionParser.Utils
@@ -67,10 +68,17 @@ namespace ExcelFormulaExpressionParser.Utils
                 range.End = ExcelUtils.ParseExcelAddress(partsRange[1]);
             }
 
-            var rows = range.Sheet.Rows.GetRange(range.Start.Row - 1, range.End.Row - range.Start.Row + 1);
+            try
+            {
+                var rows = range.Sheet.Rows.GetRange(range.Start.Row - 1, range.End.Row - range.Start.Row + 1);
 
-            range.Cells = rows.SelectMany(r => r.Cells)
-               .Where(c => c.Column >= range.Start.Column && c.Column <= range.End.Column).ToArray();
+                range.Cells = rows.SelectMany(r => r.Cells)
+                    .Where(c => c.Column >= range.Start.Column && c.Column <= range.End.Column).ToArray();
+            }
+            catch
+            {
+                range.Cells = new[] { new XCell(new XRow(range.Sheet, range.Start.Row), address) };
+            }
 
             range.Address = address;
             return range;

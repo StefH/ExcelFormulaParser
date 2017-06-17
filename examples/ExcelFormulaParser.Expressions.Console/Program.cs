@@ -8,7 +8,6 @@ using ExcelFormulaExpressionParser.Helpers;
 using ExcelFormulaExpressionParser.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.FormulaParsing.Utilities;
-using System.Globalization;
 using System.Reflection;
 using log4net;
 using log4net.Config;
@@ -246,21 +245,21 @@ namespace ExcelFormulaParser.Expressions.Console
 
                 if (range.Value is bool)
                 {
-                    cell.ExcelFormula = new ExcelFormula((bool)range.Value ? "=TRUE" : "=FALSE", context);
+                    cell.Expression = Expression.Constant((bool)range.Value);
                 }
                 else if (range.Value is DateTime)
                 {
                     double value = DateTimeHelpers.ToOADate((DateTime)range.Value);
-                    cell.ExcelFormula = new ExcelFormula("=" + value.ToString(CultureInfo.InvariantCulture), context);
+                    cell.Expression = Expression.Constant(value);
                 }
                 else if (range.Value.IsNumeric())
                 {
                     double value = Convert.ToDouble(range.Value);
-                    cell.ExcelFormula = new ExcelFormula("=" + value.ToString(CultureInfo.InvariantCulture), context);
+                    cell.Expression = Expression.Constant(value);
                 }
                 else
                 {
-                    cell.ExcelFormula = new ExcelFormula(string.Format("=\"{0}\"", range.Text), context);
+                    cell.Expression = Expression.Constant(range.Text);
                 }
             }
 
