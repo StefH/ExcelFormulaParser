@@ -14,6 +14,7 @@ namespace ExcelFormulaExpressionParser.Tests
     public class LookupAndReferenceFunctionsTests
     {
         private readonly XRange _range;
+        private readonly ExpressionParser _parser;
 
         public LookupAndReferenceFunctionsTests()
         {
@@ -37,6 +38,8 @@ namespace ExcelFormulaExpressionParser.Tests
                 Start = new CellAddress { Row = 10, Column = 1 },
                 End = new CellAddress { Row = 12, Column = 2 }
             };
+
+            _parser = new ExpressionParser(new List<ExcelFormulaToken>());
         }
 
         [Fact]
@@ -45,7 +48,7 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(2.1), _range, Expression.Constant(2), Expression.Constant(true));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(_parser, Expression.Constant(2.1), _range, Expression.Constant(2), Expression.Constant(true));
             var result = resultExpression.LambdaInvoke<double>();
 
             // Assert
@@ -58,7 +61,7 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(2.1), _range, Expression.Constant(2), Expression.Constant(1));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(_parser, Expression.Constant(2.1), _range, Expression.Constant(2), Expression.Constant(1));
             var result = resultExpression.LambdaInvoke<double>();
 
             // Assert
@@ -71,7 +74,7 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.0), _range, Expression.Constant(2), Expression.Constant(false));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(_parser, Expression.Constant(1.0), _range, Expression.Constant(2), Expression.Constant(false));
             var result = resultExpression.LambdaInvoke<double>();
 
             // Assert
@@ -84,7 +87,7 @@ namespace ExcelFormulaExpressionParser.Tests
             // Assign
 
             // Act
-            var resultExpression = LookupAndReferenceFunctions.VLookup(Expression.Constant(1.1), _range, Expression.Constant(2), Expression.Constant(false));
+            var resultExpression = LookupAndReferenceFunctions.VLookup(_parser, Expression.Constant(1.1), _range, Expression.Constant(2), Expression.Constant(false));
             var result = resultExpression.LambdaInvoke<string>();
 
             // Assert

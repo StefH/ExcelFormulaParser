@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using ExcelFormulaExpressionParser.Functions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaExpressionParser.Utils;
@@ -21,13 +20,13 @@ namespace ExcelFormulaExpressionParser
         private static readonly ILog Log = LogManager.GetLogger(typeof(ExpressionParser));
 
         private int _index;
-        private int _level;
+        internal readonly int Level;
 
         private ExcelFormulaToken CT => _list[_index];
 
         private readonly IList<ExcelFormulaToken> _list;
-        private readonly ExcelFormulaContext _context;
-        private readonly ICellFinder _finder;
+        internal readonly ExcelFormulaContext Context;
+        internal readonly ICellFinder Finder;
 
         /// <summary>
         /// ExpressionParser
@@ -71,11 +70,11 @@ namespace ExcelFormulaExpressionParser
         public ExpressionParser([NotNull] IList<ExcelFormulaToken> tokens, int level = 0, [CanBeNull] ExcelFormulaContext context = null, [CanBeNull] ICellFinder finder = null)
         {
             _list = tokens;
-            _level = level;
-            _context = context;
-            _finder = finder;
+            Level = level;
+            Context = context;
+            Finder = finder;
 
-            // Log.InfoFormat("Formula : '{0}', Sheet : '{1}'", GetFormula(), context != null ? context.Sheet.Name : "");
+            Log.InfoFormat("Formula : '{0}', Sheet : '{1}'", GetFormula(), context != null ? context.Sheet.Name : "");
         }
 
         public Expression Parse()
@@ -87,7 +86,7 @@ namespace ExcelFormulaExpressionParser
 
         private string GetFormula()
         {
-            string formula = new string(' ', _level);
+            string formula = new string(' ', Level);
             foreach (var token in _list)
             {
                 if (token.Type == TokenType.Subexpression && token.Subtype == TokenSubtype.Start)
@@ -276,7 +275,7 @@ namespace ExcelFormulaExpressionParser
                 var right = ParseOperatorPrefix();
 
                 // If there is more to be done (right != null), return right, else return the value from this function.
-                return right ?? ParseFunctionWithArgs(op.Value, tokens, _context);
+                return right ?? ParseFunctionWithArgs(op.Value, tokens, Context);
             }
 
             return left;
@@ -341,7 +340,7 @@ namespace ExcelFormulaExpressionParser
                 case "SUM": return MathFunctions.Sum(expressions, xranges);
                 case "TODAY": return DateFunctions.Today();
                 case "TRUNC": return MathFunctions.Trunc(expressions);
-                case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(expressions[0], xranges[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
+                case "VLOOKUP": return LookupAndReferenceFunctions.VLookup(this, expressions[0], xranges[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
                 case "YEAR": return DateFunctions.Year(expressions[0]);
                 case "YEARFRAC": return DateFunctions.YearFrac(expressions[0], expressions[1], expressions.Length == 3 ? expressions[2] : null);
 
@@ -382,21 +381,27 @@ namespace ExcelFormulaExpressionParser
                 var op = CT;
                 Next();
 
-                if (_finder != null)
+                if (Finder != null)
                 {
-                    var xrange = _finder.Find(_context.Sheet, op.Value);
+                    var xrange = Finder.Find(Context.Sheet, op.Value);
 
-                    var cells = xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null).ToArray();
-                    Parallel.ForEach(cells, cell =>
-                    {
-                        cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
-                    });
+                    //var cells = xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null).ToArray();
+                    //Parallel.ForEach(cells, cell =>
+                    //{
+                    //    cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
+                    //});
                     //foreach (var cell in xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null))
                     //{
                     //    cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
                     //}
 
-                    return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : XRangeExpression.Create(xrange);
+                    if (xrange.Cells.Length == 1)
+                    {
+                        var cell = xrange.Cells[0];
+                        return cell.Expression ?? Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
+                    }
+
+                    return XRangeExpression.Create(xrange);
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");
@@ -444,7 +449,7 @@ namespace ExcelFormulaExpressionParser
                 return null;
             }
 
-            return new ExpressionParser(tokens, _level + 1, context, _finder).Parse();
+            return new ExpressionParser(tokens, Level + 1, context, Finder).Parse();
         }
     }
 }

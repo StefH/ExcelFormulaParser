@@ -63,6 +63,7 @@ namespace ExcelFormulaParser.Expressions.Console
                 }
 
                 var calcCell = wb.Sheets[2].Rows[16].Cells[2];
+                System.Console.WriteLine($"ExcelFormula = `{calcCell.ExcelFormula.Formula}`");
                 var parser = new ExpressionParser(calcCell.ExcelFormula, 0, (ExcelFormulaContext)calcCell.ExcelFormula.Context, wb);
 
                 Expression x = parser.Parse();
