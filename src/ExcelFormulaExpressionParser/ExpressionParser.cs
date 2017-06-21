@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using ExcelFormulaExpressionParser.Functions;
 using ExcelFormulaExpressionParser.Models;
 using ExcelFormulaExpressionParser.Utils;
 using ExcelFormulaParser;
 using JetBrains.Annotations;
+using log4net;
+using ExcelFormulaExpressionParser.Expressions;
+using ExcelFormulaExpressionParser.Extensions;
 using TokenType = ExcelFormulaParser.ExcelFormulaTokenType;
 using TokenSubtype = ExcelFormulaParser.ExcelFormulaTokenSubtype;
-using ExcelFormulaExpressionParser.Expressions;
-using log4net;
 
 namespace ExcelFormulaExpressionParser
 {
@@ -121,11 +123,13 @@ namespace ExcelFormulaExpressionParser
         private Expression ParseArgs()
         {
             Expression left = ParseAdditive();
+            //ExpressionExtensions.LambdaInvoke(ref left);
 
             while (CT.Type == TokenType.Argument)
             {
                 Next();
                 Expression right = ParseAdditive();
+                //ExpressionExtensions.LambdaInvoke(ref right);
 
                 var argExpression = left as XArgExpression;
                 if (argExpression != null)
@@ -385,23 +389,23 @@ namespace ExcelFormulaExpressionParser
                 {
                     var xrange = Finder.Find(Context.Sheet, op.Value);
 
-                    //var cells = xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null).ToArray();
+                    var cells = xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null).ToArray();
                     //Parallel.ForEach(cells, cell =>
                     //{
-                    //    cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
+                    //    cell.Expression = cell.Expression ?? Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
                     //});
-                    //foreach (var cell in xrange.Cells.Where(c => c.ExcelFormula != null && c.Expression == null))
-                    //{
-                    //    cell.Expression = Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
-                    //}
-
-                    if (xrange.Cells.Length == 1)
+                    foreach (var cell in cells)
                     {
-                        var cell = xrange.Cells[0];
-                        return cell.Expression ?? Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
+                        cell.Expression = cell.Expression ?? Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
                     }
 
-                    return XRangeExpression.Create(xrange);
+                    //if (xrange.Cells.Length == 1)
+                    //{
+                    //    var cell = xrange.Cells[0];
+                    //    return cell.Expression ?? Parse(cell.ExcelFormula, new ExcelFormulaContext { Sheet = xrange.Sheet });
+                    //}
+
+                    return xrange.Cells.Length == 1 ? xrange.Cells[0].Expression : XRangeExpression.Create(xrange);
                 }
 
                 throw new Exception("ExcelFormulaTokenSubtype is a Range, but no 'CellFinder' class is provided.");

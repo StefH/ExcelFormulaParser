@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using ExcelFormulaExpressionParser.Expressions;
 
 namespace ExcelFormulaExpressionParser.Extensions
 {
@@ -21,10 +22,29 @@ namespace ExcelFormulaExpressionParser.Extensions
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
-        public static Expression LambdaInvoke(this Expression expression)
+        //public static Expression LambdaInvoke(this Expression expression)
+        //{
+        //    if (expression == null)
+        //    {
+        //        return null;
+        //    }
+
+        //    if (expression is ConstantExpression || expression is XArgExpression || expression is XRangeExpression)
+        //    {
+        //        return expression;
+        //    }
+
+        //    object value = Expression.Lambda(expression).Compile().DynamicInvoke();
+        //    return Expression.Constant(value);
+        //}
+
+        public static void LambdaInvoke(ref Expression expression)
         {
-            var value = Expression.Lambda(expression).Compile().DynamicInvoke();
-            return Expression.Constant(value);
+            if (!(expression == null || expression is ConstantExpression || expression is XArgExpression || expression is XRangeExpression))
+            {
+                object value = Expression.Lambda(expression).Compile().DynamicInvoke();
+                expression = Expression.Constant(value);
+            }
         }
     }
 }
